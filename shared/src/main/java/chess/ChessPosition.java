@@ -13,7 +13,6 @@ public class ChessPosition {
     private final int col;
 
     public ChessPosition(int row, int col) {
-        // TODO: Throw exception if row or col out of bounds
         this.row = row;
         this.col = col;
     }

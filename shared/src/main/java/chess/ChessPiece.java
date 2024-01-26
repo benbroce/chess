@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 /**
@@ -11,9 +12,9 @@ import java.util.Objects;
  */
 public class ChessPiece {
     private final ChessGame.TeamColor pieceColor;
-    private final ChessPiece.PieceType type;
+    private final PieceType type;
 
-    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
     }
@@ -52,7 +53,16 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece piece = board.getPiece(myPosition);
+        if (piece == null) return null;
+        return switch (piece.type) {
+            case KING -> null;
+            case QUEEN -> null;
+            case BISHOP -> (new BishopMovesCalculator()).pieceMoves(board, myPosition);
+            case KNIGHT -> null;
+            case ROOK -> null;
+            case PAWN -> null;
+        };
     }
 
     @Override
@@ -64,7 +74,6 @@ public class ChessPiece {
             case PieceType.KNIGHT -> "N";
             case PieceType.ROOK -> "R";
             case PieceType.PAWN -> "P";
-            default -> " ";
         };
         if (this.pieceColor == ChessGame.TeamColor.BLACK) {
             pieceString = pieceString.toLowerCase();
@@ -77,7 +86,7 @@ public class ChessPiece {
         if (this == o) return true;
         if ((o == null) || (getClass() != o.getClass())) return false;
         ChessPiece that = (ChessPiece) o;
-        return pieceColor == that.pieceColor && type == that.type;
+        return (pieceColor == that.pieceColor) && (type == that.type);
     }
 
     @Override
