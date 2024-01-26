@@ -19,7 +19,7 @@ public class ChessBoard {
 
     public ChessBoard() {
         board = new ChessPiece[BOARD_SIDE_LENGTH][BOARD_SIDE_LENGTH];
-        this.resetBoard();
+        this.clearBoard();
     }
 
     /**
