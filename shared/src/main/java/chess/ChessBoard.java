@@ -96,6 +96,19 @@ public class ChessBoard {
     }
 
     @Override
+    public String toString() {
+        StringBuilder outString = new StringBuilder();
+        for (int row = 1; row <= 8; ++row) {
+            for (int col = 1; col <= 8; ++col) {
+                outString.append("|");
+                outString.append(this.getPiece(new ChessPosition(row, col)).toString());
+            }
+            outString.append("|\n");
+        }
+        return outString.toString();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if ((o == null) || (getClass() != o.getClass())) return false;

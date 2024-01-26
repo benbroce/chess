@@ -56,6 +56,23 @@ public class ChessPiece {
     }
 
     @Override
+    public String toString() {
+        String pieceString = switch (this.type) {
+            case PieceType.KING -> "K";
+            case PieceType.QUEEN -> "Q";
+            case PieceType.BISHOP -> "B";
+            case PieceType.KNIGHT -> "N";
+            case PieceType.ROOK -> "R";
+            case PieceType.PAWN -> "P";
+            default -> " ";
+        };
+        if (this.pieceColor == ChessGame.TeamColor.BLACK) {
+            pieceString = pieceString.toLowerCase();
+        }
+        return pieceString;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if ((o == null) || (getClass() != o.getClass())) return false;
