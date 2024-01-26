@@ -1,7 +1,11 @@
 package chess;
 
+import chess.movesCalculators.BishopMovesCalculator;
+import chess.movesCalculators.KingMovesCalculator;
+import chess.movesCalculators.KnightMovesCalculator;
+import chess.movesCalculators.RookMovesCalculator;
+
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Objects;
 
 /**
