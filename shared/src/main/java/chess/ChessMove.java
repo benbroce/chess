@@ -45,6 +45,15 @@ public class ChessMove {
     }
 
     @Override
+    public String toString() {
+        if (promotionPiece == null) {
+            return String.format("[%s -> %s]", startPosition.toString(), endPosition.toString());
+        } else {
+            return String.format("[%s -> %s ! %s]", startPosition.toString(), endPosition.toString(), promotionPiece.toString());
+        }
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if ((o == null) || (getClass() != o.getClass())) return false;
