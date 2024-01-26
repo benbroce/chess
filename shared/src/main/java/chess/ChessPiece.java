@@ -60,7 +60,7 @@ public class ChessPiece {
         ChessPiece piece = board.getPiece(myPosition);
         if (piece == null) return null;
         return switch (piece.type) {
-            case KING -> null;
+            case KING -> (new KingMovesCalculator()).pieceMoves(board, myPosition);
             case QUEEN -> null;
             case BISHOP -> (new BishopMovesCalculator()).pieceMoves(board, myPosition);
             case KNIGHT -> null;
