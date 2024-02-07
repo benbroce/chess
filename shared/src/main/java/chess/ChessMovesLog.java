@@ -10,8 +10,16 @@ public class ChessMovesLog {
             this.piece = new ChessPiece(piece);
         }
 
-        public ChessPiece piece;
-        public ChessMove move;
+        private final ChessPiece piece;
+        private final ChessMove move;
+
+        public ChessPiece getPiece() {
+            return piece;
+        }
+
+        public ChessMove getMove() {
+            return move;
+        }
 
         @Override
         public String toString() {

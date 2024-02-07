@@ -1,5 +1,8 @@
 package chess;
 
+import chess.movesCalculators.PieceMovesCalculator;
+import jdk.jshell.spi.ExecutionControl;
+
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -46,6 +49,60 @@ public class ChessGame {
     }
 
     /**
+     * Gets the en passant move the given piece can make, if any
+     *
+     * @param startPosition the position of the piece to test
+     * @return the en passant capture move the piece can make, or null if there isn't one
+     */
+    private ChessMove enPassantMove(ChessPosition startPosition) {
+        ChessPiece pawn = this.board.getPiece(startPosition);
+        // en passant cannot be the first move
+        if (movesLog.getEntries().isEmpty()) {
+            return null;
+        }
+        ChessPiece opponentPawn = movesLog.getLastEntry().getPiece();
+        ChessMove opponentPawnMove = movesLog.getLastEntry().getMove();
+        // return En Passant capture move if all the following are true:
+        // - this piece is a pawn
+        // - opponent (last logged moving piece) is an enemy pawn
+        // - this piece is in an adjacent column to opponent
+        // - last logged move is a double move by the opponent
+        if ((pawn != null)
+                && (pawn.getPieceType() == ChessPiece.PieceType.PAWN)
+                && (pawn.getTeamColor() != opponentPawn.getTeamColor())
+                && (opponentPawn.getPieceType() == ChessPiece.PieceType.PAWN)
+                && (Math.abs(startPosition.getColumn() - opponentPawnMove.getEndPosition().getColumn()) == 1)
+                && PieceMovesCalculator.isDoubleMove(opponentPawnMove)) {
+            // return move that is capture of opponentPawn
+            return new ChessMove(
+                    startPosition,
+                    (new ChessPosition(
+                            (opponentPawnMove.getEndPosition().getRow()
+                                    + ((pawn.getTeamColor() == TeamColor.WHITE) ? 1 : -1)),
+                            opponentPawnMove.getEndPosition().getColumn()
+                    )),
+                    null);
+        }
+        // otherwise, return null
+        return null;
+    }
+
+    /**
+     * Determines whether the given valid move is an en passant capture
+     *
+     * @param validMove a valid move
+     * @return whether the move is an en passant capture
+     */
+    private boolean isEnPassantMove(ChessMove validMove) {
+        ChessPiece piece = this.board.getPiece(validMove.getStartPosition());
+        ChessPiece target = this.board.getPiece(validMove.getEndPosition());
+        // valid move is en passant if the piece is a pawn, the move is a capture, and the capture square is empty
+        return ((piece.getPieceType() == ChessPiece.PieceType.PAWN)
+                && (validMove.getStartPosition().getColumn() != validMove.getEndPosition().getColumn())
+                && (target == null));
+    }
+
+    /**
      * Gets the valid moves for a piece at the given location
      * NOTE: Does not invalidate moves for being out-of-turn
      *
@@ -59,9 +116,15 @@ public class ChessGame {
         if (pieceToMove == null) {
             return null;
         }
-        // filter possible moves (pieceMoves()) to account for check positions
+        Collection<ChessMove> possibleMoves = pieceToMove.pieceMoves(this.board, startPosition);
+        // add En Passant move, if any
+        ChessMove enPassantMove = this.enPassantMove(startPosition);
+        if (enPassantMove != null) {
+            possibleMoves.add(enPassantMove);
+        }
+        // filter possibleMoves to account for check positions
         Collection<ChessMove> moves = new HashSet<>();
-        for (ChessMove move : pieceToMove.pieceMoves(this.board, startPosition)) {
+        for (ChessMove move : possibleMoves) {
             ChessBoard testBoard = new ChessBoard(this.board);
             makeMoveUnchecked(testBoard, move);
             // if in check: keep moves that take the king out of check
@@ -83,6 +146,10 @@ public class ChessGame {
         ChessPiece piece = board.getPiece(move.getStartPosition());
         // remove any captured piece at the endPosition
         board.removePiece(move.getEndPosition());
+        // if the move is an en passant capture, remove the captured piece
+        if (isEnPassantMove(move)) {
+            board.removePiece(movesLog.getLastEntry().getMove().getEndPosition());
+        }
         // add the piece at the startPosition to the endPosition, promote if needed
         board.addPiece(
                 move.getEndPosition(),
@@ -120,9 +187,6 @@ public class ChessGame {
         makeMoveUnchecked(this.board, move);
         // record the move in the moves log
         this.movesLog.addMove(new ChessMovesLog.Entry(move, piece));
-
-        System.out.println(movesLog.toString());
-
         // change the teamTurn
         this.teamTurn = (this.teamTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
