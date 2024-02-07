@@ -26,9 +26,9 @@ public class ChessBoard {
         this();
         for (int row = 1; row <= BOARD_SIDE_LENGTH; ++row) {
             for (int col = 1; col <= BOARD_SIDE_LENGTH; ++col) {
-                ChessPiece otherPiece = other.board[row][col];
+                ChessPiece otherPiece = other.board[row - 1][col - 1];
                 if (otherPiece != null) {
-                    this.board[row][col] = new ChessPiece(otherPiece.getTeamColor(), otherPiece.getPieceType());
+                    this.board[row - 1][col - 1] = new ChessPiece(otherPiece.getTeamColor(), otherPiece.getPieceType());
                 }
             }
         }
