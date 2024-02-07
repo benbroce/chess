@@ -22,6 +22,18 @@ public class ChessBoard {
         this.clearBoard();
     }
 
+    public ChessBoard(ChessBoard other) {
+        this();
+        for (int row = 1; row <= BOARD_SIDE_LENGTH; ++row) {
+            for (int col = 1; col <= BOARD_SIDE_LENGTH; ++col) {
+                ChessPiece otherPiece = other.board[row][col];
+                if (otherPiece != null) {
+                    this.board[row][col] = new ChessPiece(otherPiece.getTeamColor(), otherPiece.getPieceType());
+                }
+            }
+        }
+    }
+
     /**
      * Adds a chess piece to the chessboard
      *
