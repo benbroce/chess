@@ -104,16 +104,16 @@ public class ChessGame {
         // if move is illegal, throw an exception
         if (legalMoves == null) {
             throw new InvalidMoveException(
-                    String.format("Attempted Move: %s Moves a nonexistent piece.", move.toString()));
+                    String.format("Attempted Move: %s Moves a nonexistent piece.", move));
         }
         ChessPiece piece = this.board.getPiece(move.getStartPosition());
         if (piece.getTeamColor() != this.teamTurn) {
             throw new InvalidMoveException(
-                    String.format("Attempted Move: %s Moves out of turn.", move.toString()));
+                    String.format("Attempted Move: %s Moves out of turn.", move));
         }
         if (!legalMoves.contains(move)) {
             throw new InvalidMoveException(
-                    String.format("Attempted Move: %s Invalid for piece or endangers the king.", move.toString()));
+                    String.format("Attempted Move: %s Invalid for piece or endangers the king.", move));
         }
         // make the move
         makeMoveUnchecked(this.board, move);
