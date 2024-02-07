@@ -17,6 +17,11 @@ public class ChessPosition {
         this.col = col;
     }
 
+    public ChessPosition(ChessPosition other) {
+        this.row = other.row;
+        this.col = other.col;
+    }
+
     /**
      * @return which row this position is in
      * 1 codes for the bottom row

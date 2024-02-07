@@ -20,6 +20,10 @@ public class ChessPiece {
         this.type = type;
     }
 
+    public ChessPiece(ChessPiece other) {
+        this(other.pieceColor, other.type);
+    }
+
     /**
      * The various different chess piece options
      */

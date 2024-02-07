@@ -10,14 +10,15 @@ import java.util.HashSet;
  * signature of the existing methods.
  */
 public class ChessGame {
-
-    private TeamColor teamTurn;
     private ChessBoard board;
+    private TeamColor teamTurn;
+    private ChessMovesLog movesLog;
 
     public ChessGame() {
         this.teamTurn = TeamColor.WHITE;
         this.board = new ChessBoard();
         this.board.resetBoard();
+        this.movesLog = new ChessMovesLog();
     }
 
     /**
@@ -117,6 +118,11 @@ public class ChessGame {
         }
         // make the move
         makeMoveUnchecked(this.board, move);
+        // record the move in the moves log
+        this.movesLog.addMove(new ChessMovesLog.Entry(move, piece));
+
+        System.out.println(movesLog.toString());
+
         // change the teamTurn
         this.teamTurn = (this.teamTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
