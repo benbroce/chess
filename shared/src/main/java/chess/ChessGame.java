@@ -122,16 +122,17 @@ public class ChessGame {
     }
 
     /**
-     * Finds the position of the king on the given team
+     * Finds the position of the king on the given team and board
      *
+     * @param board     the board to check
      * @param teamColor which team to check
      * @return the position of the king of teamColor, or null if the king is not on the board
      */
-    private ChessPosition getKingPosition(TeamColor teamColor) {
+    private ChessPosition getKingPosition(ChessBoard board, TeamColor teamColor) {
         for (int row = 1; row <= ChessBoard.BOARD_SIDE_LENGTH; ++row) {
             for (int col = 1; col <= ChessBoard.BOARD_SIDE_LENGTH; ++col) {
                 ChessPosition position = new ChessPosition(row, col);
-                ChessPiece piece = this.board.getPiece(position);
+                ChessPiece piece = board.getPiece(position);
                 if ((piece != null)
                         && (piece.getTeamColor() == teamColor)
                         && (piece.getPieceType() == ChessPiece.PieceType.KING)) {
@@ -151,7 +152,7 @@ public class ChessGame {
      */
     private boolean isInCheck(ChessBoard board, TeamColor teamColor) {
         // return true if teamColor's king can be captured
-        ChessPosition kingPosition = getKingPosition(teamColor);
+        ChessPosition kingPosition = getKingPosition(board, teamColor);
         // not in check if the king is not on the board
         if (kingPosition == null) {
             return false;
