@@ -108,6 +108,10 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
+        // return false if it is not teamColor's turn
+        if (teamColor != this.teamTurn) {
+            return false;
+        }
         // check every piece on the board
         for (int row = 1; row <= ChessBoard.BOARD_SIDE_LENGTH; ++row) {
             for (int col = 1; col <= ChessBoard.BOARD_SIDE_LENGTH; ++col) {
