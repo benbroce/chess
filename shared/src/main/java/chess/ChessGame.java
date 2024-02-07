@@ -60,7 +60,23 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        Collection<ChessMove> legalMoves = this.validMoves(move.getStartPosition());
+        // if move is illegal, throw an exception
+        if ((legalMoves == null) || !legalMoves.contains(move)) {
+            throw new InvalidMoveException(move.toString());
+        }
+        // remove any captured piece at the endPosition
+        this.board.removePiece(move.getEndPosition());
+        // add the piece at the startPosition to the endPosition, promote if needed
+        ChessPiece piece = this.board.getPiece(move.getStartPosition());
+        this.board.addPiece(
+                move.getEndPosition(),
+                (new ChessPiece(
+                        piece.getTeamColor(),
+                        (move.getPromotionPiece() == null) ? piece.getPieceType() : move.getPromotionPiece()))
+        );
+        // remove the piece from the startPosition
+        this.board.removePiece(move.getStartPosition());
     }
 
     /**
