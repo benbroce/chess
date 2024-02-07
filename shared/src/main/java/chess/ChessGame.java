@@ -91,7 +91,19 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        // check every piece on the board
+        for (int row = 1; row <= ChessBoard.BOARD_SIDE_LENGTH; ++row) {
+            for (int col = 1; col <= ChessBoard.BOARD_SIDE_LENGTH; ++col) {
+                ChessPosition position = new ChessPosition(row, col);
+                ChessPiece piece = this.board.getPiece(position);
+                // return false on proof that there is at least one valid move for the given teamColor
+                // proof if: there is a piece, it is of the given teamColor, and it has a valid move
+                if ((piece != null) && (piece.getTeamColor() == teamColor) && !validMoves(position).isEmpty()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
