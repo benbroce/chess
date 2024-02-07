@@ -128,25 +128,59 @@ public class ChessGame {
     }
 
     /**
-     * Finds the position of the king on the given team and board
+     * Finds the first occurrence of a piece type on the given team and board
      *
-     * @param board     the board to check
-     * @param teamColor which team to check
-     * @return the position of the king of teamColor, or null if the king is not on the board
+     * @param board     the board to search
+     * @param teamColor the team color to search for
+     * @param pieceType the piece type to search for
+     * @return the position of the first instance (scanning rows starting at bottom left) of the piece,
+     * or null if the piece is not on the board
      */
-    private ChessPosition getKingPosition(ChessBoard board, TeamColor teamColor) {
+    private ChessPosition getPiecePosition(ChessBoard board, TeamColor teamColor, ChessPiece.PieceType pieceType) {
         for (int row = 1; row <= ChessBoard.BOARD_SIDE_LENGTH; ++row) {
             for (int col = 1; col <= ChessBoard.BOARD_SIDE_LENGTH; ++col) {
                 ChessPosition position = new ChessPosition(row, col);
                 ChessPiece piece = board.getPiece(position);
                 if ((piece != null)
                         && (piece.getTeamColor() == teamColor)
-                        && (piece.getPieceType() == ChessPiece.PieceType.KING)) {
+                        && (piece.getPieceType() == pieceType)) {
                     return position;
                 }
             }
         }
         return null;
+    }
+
+    /**
+     * Private helper to determine if the given piece is capturable.
+     *
+     * @param board         the board to determine capturable status on
+     * @param teamColor     which team to check capturable
+     * @param piecePosition the position of the piece to determine capturable
+     * @return True if the specified team is in check
+     */
+    private boolean isCapturable(ChessBoard board, TeamColor teamColor, ChessPosition piecePosition) {
+        // return true if teamColor's specified piece can be captured
+        // not in check if the piece is not on the board
+        if (piecePosition == null) {
+            return false;
+        }
+        // for every opposite colored piece
+        for (int row = 1; row <= ChessBoard.BOARD_SIDE_LENGTH; ++row) {
+            for (int col = 1; col <= ChessBoard.BOARD_SIDE_LENGTH; ++col) {
+                ChessPosition opponentPosition = new ChessPosition(row, col);
+                ChessPiece opponentPiece = board.getPiece(opponentPosition);
+                if ((opponentPiece != null) && (opponentPiece.getTeamColor() != teamColor)) {
+                    // check each potential move for capture of the teamColor king
+                    for (ChessMove opponentMove : opponentPiece.pieceMoves(board, opponentPosition)) {
+                        if (opponentMove.getEndPosition().equals(piecePosition)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -157,28 +191,7 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     private boolean isInCheck(ChessBoard board, TeamColor teamColor) {
-        // return true if teamColor's king can be captured
-        ChessPosition kingPosition = getKingPosition(board, teamColor);
-        // not in check if the king is not on the board
-        if (kingPosition == null) {
-            return false;
-        }
-        // for every opposite colored piece
-        for (int row = 1; row <= ChessBoard.BOARD_SIDE_LENGTH; ++row) {
-            for (int col = 1; col <= ChessBoard.BOARD_SIDE_LENGTH; ++col) {
-                ChessPosition position = new ChessPosition(row, col);
-                ChessPiece piece = board.getPiece(position);
-                if ((piece != null) && (piece.getTeamColor() != teamColor)) {
-                    // check each potential move for capture of the teamColor king
-                    for (ChessMove move : piece.pieceMoves(board, position)) {
-                        if (move.getEndPosition().equals(kingPosition)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
+        return isCapturable(board, teamColor, getPiecePosition(board, teamColor, ChessPiece.PieceType.KING));
     }
 
     /**
