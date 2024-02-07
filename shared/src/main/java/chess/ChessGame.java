@@ -192,7 +192,30 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        // return true if teamColor's king isInCheck() and all teamColor pieces have no validMoves()
+        return (isInCheck(teamColor) && hasNoValidMoves(teamColor));
+    }
+
+    /**
+     * Determines whether a team has no valid moves remaining.
+     *
+     * @param teamColor the color team to check
+     * @return True if a valid move remains for that team
+     */
+    private boolean hasNoValidMoves(TeamColor teamColor) {
+        // check every square on the board
+        for (int row = 1; row <= ChessBoard.BOARD_SIDE_LENGTH; ++row) {
+            for (int col = 1; col <= ChessBoard.BOARD_SIDE_LENGTH; ++col) {
+                ChessPosition position = new ChessPosition(row, col);
+                ChessPiece piece = this.board.getPiece(position);
+                // return false on proof that there is at least one valid move for the given teamColor
+                // proof if: there is a piece, it is of the given teamColor, and it has a valid move
+                if ((piece != null) && (piece.getTeamColor() == teamColor) && !validMoves(position).isEmpty()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -207,19 +230,7 @@ public class ChessGame {
         if (teamColor != this.teamTurn || isInCheck(teamColor)) {
             return false;
         }
-        // check every square on the board
-        for (int row = 1; row <= ChessBoard.BOARD_SIDE_LENGTH; ++row) {
-            for (int col = 1; col <= ChessBoard.BOARD_SIDE_LENGTH; ++col) {
-                ChessPosition position = new ChessPosition(row, col);
-                ChessPiece piece = this.board.getPiece(position);
-                // return false on proof that there is at least one valid move for the given teamColor
-                // proof if: there is a piece, it is of the given teamColor, and it has a valid move
-                if ((piece != null) && (piece.getTeamColor() == teamColor) && !validMoves(position).isEmpty()) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return hasNoValidMoves(teamColor);
     }
 
     /**
