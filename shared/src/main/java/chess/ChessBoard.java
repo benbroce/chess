@@ -99,8 +99,8 @@ public class ChessBoard {
     public String toString() {
         StringBuilder outString = new StringBuilder();
         ChessPiece piece = null;
-        for (int row = 1; row <= 8; ++row) {
-            for (int col = 1; col <= 8; ++col) {
+        for (int row = BOARD_SIDE_LENGTH; row >= 1; --row) {
+            for (int col = 1; col <= BOARD_SIDE_LENGTH; ++col) {
                 outString.append("|");
                 piece = this.getPiece(new ChessPosition(row, col));
                 if (piece == null) {
