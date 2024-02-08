@@ -37,6 +37,10 @@ public class ChessMovesLog {
         entries.add(entry);
     }
 
+    public void reset() {
+        entries.clear();
+    }
+
     public Entry getLastEntry() {
         return entries.getLast();
     }

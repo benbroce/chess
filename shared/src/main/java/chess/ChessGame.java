@@ -3,8 +3,7 @@ package chess;
 import chess.movesCalculators.PieceMovesCalculator;
 import jdk.jshell.spi.ExecutionControl;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.*;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -46,6 +45,119 @@ public class ChessGame {
     public enum TeamColor {
         WHITE,
         BLACK
+    }
+
+    /**
+     * Determines whether the piece at the given position has moved this game
+     *
+     * @param piecePosition the position of the piece to inspect
+     * @return whether the piece has moved this game
+     */
+    private boolean pieceHasMoved(ChessPosition piecePosition) {
+        for (ChessMovesLog.Entry entry : movesLog.getEntries()) {
+            if (entry.getMove().getStartPosition().equals(piecePosition)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the castling move the king can make, if any
+     *
+     * @param startPosition the position of the piece to test
+     * @return the castling move the piece can make, or null if there isn't one
+     */
+    private Collection<ChessMove> castlingMoves(ChessPosition startPosition) {
+        HashSet<ChessMove> moves = new HashSet<>();
+        ChessPiece king = this.board.getPiece(startPosition);
+        // add castling move if all the following are true:
+        // - this piece is a king
+        // - the king has not moved yet and started in the correct position
+        // - the king is not in check
+        // - ...
+        if ((king == null)
+                || (king.getPieceType() != ChessPiece.PieceType.KING)
+                || (pieceHasMoved(startPosition))
+                || !(startPosition.equals(new ChessPosition(
+                ((king.getTeamColor() == TeamColor.WHITE) ? 1 : ChessBoard.BOARD_SIDE_LENGTH), 5)))
+                || isInCheck(king.getTeamColor())) {
+            return moves; // empty set
+        }
+        // - (continued)
+        // - the attempted rook has not moved yet
+        // - there are no pieces between the king and the attempted rook
+        ChessPosition rookPosition;
+        boolean isPathClear;
+        if (king.getTeamColor() == TeamColor.WHITE) {
+            // check white castle left
+            rookPosition = new ChessPosition(1, 1);
+            isPathClear = true;
+            for (int i = 1; i <= 3; ++i) {
+                if (board.getPiece(new ChessPosition(rookPosition.getRow(), (rookPosition.getColumn() + i))) != null) {
+                    isPathClear = false;
+                }
+            }
+            if (!pieceHasMoved(rookPosition) && isPathClear) {
+                moves.add(new ChessMove(startPosition,
+                        (new ChessPosition(startPosition.getRow(), (startPosition.getColumn()) - 2)),
+                        null));
+            }
+            // check white castle right
+            rookPosition = new ChessPosition(1, ChessBoard.BOARD_SIDE_LENGTH);
+            isPathClear = true;
+            for (int i = 1; i <= 2; ++i) {
+                if (board.getPiece(new ChessPosition(rookPosition.getRow(), (rookPosition.getColumn() - i))) != null) {
+                    isPathClear = false;
+                }
+            }
+            if (!pieceHasMoved(rookPosition) && isPathClear) {
+                moves.add(new ChessMove(startPosition,
+                        (new ChessPosition(startPosition.getRow(), (startPosition.getColumn()) + 2)),
+                        null));
+            }
+        } else {
+            // check black castle left
+            rookPosition = new ChessPosition(ChessBoard.BOARD_SIDE_LENGTH, 1);
+            isPathClear = true;
+            for (int i = 1; i <= 3; ++i) {
+                if (board.getPiece(new ChessPosition(rookPosition.getRow(), (rookPosition.getColumn() + i))) != null) {
+                    isPathClear = false;
+                }
+            }
+            if (!pieceHasMoved(rookPosition) && isPathClear) {
+                moves.add(new ChessMove(startPosition,
+                        (new ChessPosition(startPosition.getRow(), (startPosition.getColumn()) - 2)),
+                        null));
+            }
+            // check black castle right
+            rookPosition = new ChessPosition(ChessBoard.BOARD_SIDE_LENGTH, ChessBoard.BOARD_SIDE_LENGTH);
+            isPathClear = true;
+            for (int i = 1; i <= 2; ++i) {
+                if (board.getPiece(new ChessPosition(rookPosition.getRow(), (rookPosition.getColumn() - i))) != null) {
+                    isPathClear = false;
+                }
+            }
+            if (!pieceHasMoved(rookPosition) && isPathClear) {
+                moves.add(new ChessMove(startPosition,
+                        (new ChessPosition(startPosition.getRow(), (startPosition.getColumn()) + 2)),
+                        null));
+            }
+        }
+        // return the resulting moves
+        return moves;
+    }
+
+    /**
+     * Determines whether the given valid move is a castling move
+     *
+     * @param validMove a valid move
+     * @return whether the valid move is a castling move
+     */
+    private boolean isCastlingMove(ChessMove validMove) {
+        ChessPiece piece = this.board.getPiece(validMove.getStartPosition());
+        return ((piece.getPieceType() == ChessPiece.PieceType.KING)
+                && (PieceMovesCalculator.isDoubleMove(validMove)));
     }
 
     /**
@@ -122,14 +234,22 @@ public class ChessGame {
         if (enPassantMove != null) {
             possibleMoves.add(enPassantMove);
         }
+        // add castling moves, if any
+        possibleMoves.addAll(this.castlingMoves(startPosition));
         // filter possibleMoves to account for check positions
         Collection<ChessMove> moves = new HashSet<>();
         for (ChessMove move : possibleMoves) {
             ChessBoard testBoard = new ChessBoard(this.board);
             makeMoveUnchecked(testBoard, move);
-            // if in check: keep moves that take the king out of check
-            // if not in check: keep moves that don't put the king in check
-            if (!isInCheck(testBoard, pieceToMove.getTeamColor())) {
+            // only keep moves that do not end with the king in check
+            // if move is castling move, also only keep moves that do not make the castling rook capturable
+            boolean isCastleLeft = (move.getStartPosition().getColumn() > move.getEndPosition().getColumn());
+            if (!isInCheck(testBoard, pieceToMove.getTeamColor())
+                    && (!isCastlingMove(move) || !isCapturable(testBoard, pieceToMove.getTeamColor(), (isCastleLeft
+                    ? (new ChessPosition(move.getStartPosition().getRow(), 4))
+                    : (new ChessPosition(move.getStartPosition().getRow(), (ChessBoard.BOARD_SIDE_LENGTH - 2)))
+            )))
+            ) {
                 moves.add(move);
             }
         }
@@ -149,6 +269,18 @@ public class ChessGame {
         // if the move is an en passant capture, remove the captured piece
         if (isEnPassantMove(move)) {
             board.removePiece(movesLog.getLastEntry().getMove().getEndPosition());
+        }
+        // if the move is a castling move, move the rook to one space inside from the king
+        if (isCastlingMove(move)) {
+            boolean isCastleLeft = (move.getStartPosition().getColumn() > move.getEndPosition().getColumn());
+            board.removePiece(isCastleLeft
+                    ? (new ChessPosition(move.getStartPosition().getRow(), 1))
+                    : (new ChessPosition(move.getStartPosition().getRow(), ChessBoard.BOARD_SIDE_LENGTH)));
+            board.addPiece((isCastleLeft
+                            ? (new ChessPosition(move.getStartPosition().getRow(), 4))
+                            : (new ChessPosition(move.getStartPosition().getRow(), (ChessBoard.BOARD_SIDE_LENGTH - 2)))
+                    ),
+                    (new ChessPiece(piece.getTeamColor(), ChessPiece.PieceType.ROOK)));
         }
         // add the piece at the startPosition to the endPosition, promote if needed
         board.addPiece(
@@ -221,7 +353,7 @@ public class ChessGame {
      * @param board         the board to determine capturable status on
      * @param teamColor     which team to check capturable
      * @param piecePosition the position of the piece to determine capturable
-     * @return True if the specified team is in check
+     * @return True if the specified piece is capturable
      */
     private boolean isCapturable(ChessBoard board, TeamColor teamColor, ChessPosition piecePosition) {
         // return true if teamColor's specified piece can be captured
@@ -317,12 +449,13 @@ public class ChessGame {
     }
 
     /**
-     * Sets this game's chessboard with a given board
+     * Sets this game's chessboard with a given board and resets the move log
      *
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
         this.board = board;
+        this.movesLog.reset();
     }
 
     /**
