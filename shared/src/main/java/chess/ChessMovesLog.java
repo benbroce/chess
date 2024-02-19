@@ -4,21 +4,10 @@ import java.util.ArrayList;
 
 public class ChessMovesLog {
 
-    public static class Entry {
+    public record Entry(ChessMove move, ChessPiece piece) {
         public Entry(ChessMove move, ChessPiece piece) {
             this.move = new ChessMove(move);
             this.piece = new ChessPiece(piece);
-        }
-
-        private final ChessPiece piece;
-        private final ChessMove move;
-
-        public ChessPiece getPiece() {
-            return piece;
-        }
-
-        public ChessMove getMove() {
-            return move;
         }
 
         @Override
