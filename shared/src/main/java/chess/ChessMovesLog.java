@@ -16,7 +16,7 @@ public class ChessMovesLog {
         }
     }
 
-    private ArrayList<Entry> entries;
+    private final ArrayList<Entry> entries;
 
     public ChessMovesLog() {
         entries = new ArrayList<>();

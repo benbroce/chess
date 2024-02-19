@@ -18,9 +18,9 @@ public class PawnMovesCalculator extends PieceMovesCalculator {
 
         // check forward
         testPosition = new ChessPosition((position.getRow() + (IS_WHITE ? 1 : -1)), position.getColumn());
-        if (!isMoveOutOfBounds(board, testPosition) && !isMoveCollision(board, testPosition)) {
+        if (!isMoveOutOfBounds(testPosition) && !isMoveCollision(board, testPosition)) {
             moves.add(new ChessMove(position, testPosition, null));
-            
+
             // check double forward (only valid from starting row)
             if (position.getRow() == STARTING_ROW) {
                 testPosition = new ChessPosition((position.getRow() + (IS_WHITE ? 2 : -2)), position.getColumn());
@@ -32,13 +32,13 @@ public class PawnMovesCalculator extends PieceMovesCalculator {
 
         // check diagonal left (only valid on capture)
         testPosition = new ChessPosition((position.getRow() + (IS_WHITE ? 1 : -1)), (position.getColumn() - 1));
-        if (!isMoveOutOfBounds(board, testPosition) && isMoveCollisionWithEnemy(board, position, testPosition)) {
+        if (!isMoveOutOfBounds(testPosition) && isMoveCollisionWithEnemy(board, position, testPosition)) {
             moves.add(new ChessMove(position, testPosition, null));
         }
 
         // check diagonal right (only valid on capture)
         testPosition = new ChessPosition((position.getRow() + (IS_WHITE ? 1 : -1)), (position.getColumn() + 1));
-        if (!isMoveOutOfBounds(board, testPosition) && isMoveCollisionWithEnemy(board, position, testPosition)) {
+        if (!isMoveOutOfBounds(testPosition) && isMoveCollisionWithEnemy(board, position, testPosition)) {
             moves.add(new ChessMove(position, testPosition, null));
         }
 

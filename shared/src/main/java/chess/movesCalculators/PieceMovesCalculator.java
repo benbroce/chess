@@ -12,11 +12,10 @@ public abstract class PieceMovesCalculator {
     /**
      * Indicates whether the given move parameters are out of bounds.
      *
-     * @param board       the board in question for the proposed ChessMove
      * @param endPosition the position where the move is attempting to end
      * @return whether the move is out of bounds
      */
-    public static boolean isMoveOutOfBounds(ChessBoard board, ChessPosition endPosition) {
+    public static boolean isMoveOutOfBounds(ChessPosition endPosition) {
         return ((endPosition.getRow() < 1) || (endPosition.getRow() > ChessBoard.BOARD_SIDE_LENGTH)
                 || (endPosition.getColumn() < 1) || (endPosition.getColumn() > ChessBoard.BOARD_SIDE_LENGTH));
     }

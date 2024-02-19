@@ -16,7 +16,7 @@ public class RookMovesCalculator extends PieceMovesCalculator {
         // check up
         for (int numMoves = 1; true; ++numMoves) {
             testPosition = new ChessPosition((position.getRow() + numMoves), position.getColumn());
-            if (isMoveOutOfBounds(board, testPosition)) {
+            if (isMoveOutOfBounds(testPosition)) {
                 break;
             } else {
                 if (isMoveCollision(board, testPosition)) {
@@ -32,7 +32,7 @@ public class RookMovesCalculator extends PieceMovesCalculator {
         // check down
         for (int numMoves = 1; true; ++numMoves) {
             testPosition = new ChessPosition((position.getRow() - numMoves), position.getColumn());
-            if (isMoveOutOfBounds(board, testPosition)) {
+            if (isMoveOutOfBounds(testPosition)) {
                 break;
             } else {
                 if (isMoveCollision(board, testPosition)) {
@@ -48,7 +48,7 @@ public class RookMovesCalculator extends PieceMovesCalculator {
         // check left
         for (int numMoves = 1; true; ++numMoves) {
             testPosition = new ChessPosition(position.getRow(), (position.getColumn() - numMoves));
-            if (isMoveOutOfBounds(board, testPosition)) {
+            if (isMoveOutOfBounds(testPosition)) {
                 break;
             } else {
                 if (isMoveCollision(board, testPosition)) {
@@ -64,7 +64,7 @@ public class RookMovesCalculator extends PieceMovesCalculator {
         // check right
         for (int numMoves = 1; true; ++numMoves) {
             testPosition = new ChessPosition(position.getRow(), (position.getColumn() + numMoves));
-            if (isMoveOutOfBounds(board, testPosition)) {
+            if (isMoveOutOfBounds(testPosition)) {
                 break;
             } else {
                 if (isMoveCollision(board, testPosition)) {

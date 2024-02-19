@@ -13,7 +13,7 @@ import java.util.*;
 public class ChessGame {
     private ChessBoard board;
     private TeamColor teamTurn;
-    private ChessMovesLog movesLog;
+    private final ChessMovesLog movesLog;
 
     public ChessGame() {
         this.teamTurn = TeamColor.WHITE;

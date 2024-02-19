@@ -51,9 +51,9 @@ public class ChessMove {
     @Override
     public String toString() {
         if (promotionPiece == null) {
-            return String.format("[%s -> %s]", startPosition.toString(), endPosition.toString());
+            return String.format("[%s -> %s]", startPosition, endPosition);
         } else {
-            return String.format("[%s -> %s ! %s]", startPosition.toString(), endPosition.toString(), promotionPiece.toString());
+            return String.format("[%s -> %s ! %s]", startPosition, endPosition, promotionPiece);
         }
     }
 

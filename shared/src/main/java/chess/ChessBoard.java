@@ -15,7 +15,7 @@ public class ChessBoard {
     // implement chess board as a 2D array ([row][col]) of ChessPiece
     // NOTE: bottom left of board corresponds to ChessPosition (1, 1)
     // NOTE: board is 0-indexed [0-7], but ChessPosition is 1-indexed [1-8]
-    private ChessPiece[][] board;
+    private final ChessPiece[][] board;
 
     public ChessBoard() {
         board = new ChessPiece[BOARD_SIDE_LENGTH][BOARD_SIDE_LENGTH];
@@ -110,7 +110,7 @@ public class ChessBoard {
     @Override
     public String toString() {
         StringBuilder outString = new StringBuilder();
-        ChessPiece piece = null;
+        ChessPiece piece;
         for (int row = BOARD_SIDE_LENGTH; row >= 1; --row) {
             for (int col = 1; col <= BOARD_SIDE_LENGTH; ++col) {
                 outString.append("|");

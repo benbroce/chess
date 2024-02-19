@@ -16,7 +16,7 @@ public class BishopMovesCalculator extends PieceMovesCalculator {
         // check up, right
         for (int numMoves = 1; true; ++numMoves) {
             testPosition = new ChessPosition((position.getRow() + numMoves), (position.getColumn() + numMoves));
-            if (isMoveOutOfBounds(board, testPosition)) {
+            if (isMoveOutOfBounds(testPosition)) {
                 break;
             } else {
                 if (isMoveCollision(board, testPosition)) {
@@ -32,7 +32,7 @@ public class BishopMovesCalculator extends PieceMovesCalculator {
         // check up, left
         for (int numMoves = 1; true; ++numMoves) {
             testPosition = new ChessPosition((position.getRow() + numMoves), (position.getColumn() - numMoves));
-            if (isMoveOutOfBounds(board, testPosition)) {
+            if (isMoveOutOfBounds(testPosition)) {
                 break;
             } else {
                 if (isMoveCollision(board, testPosition)) {
@@ -48,7 +48,7 @@ public class BishopMovesCalculator extends PieceMovesCalculator {
         // check down, right
         for (int numMoves = 1; true; ++numMoves) {
             testPosition = new ChessPosition((position.getRow() - numMoves), (position.getColumn() + numMoves));
-            if (isMoveOutOfBounds(board, testPosition)) {
+            if (isMoveOutOfBounds(testPosition)) {
                 break;
             } else {
                 if (isMoveCollision(board, testPosition)) {
@@ -64,7 +64,7 @@ public class BishopMovesCalculator extends PieceMovesCalculator {
         // check down, left
         for (int numMoves = 1; true; ++numMoves) {
             testPosition = new ChessPosition((position.getRow() - numMoves), (position.getColumn() - numMoves));
-            if (isMoveOutOfBounds(board, testPosition)) {
+            if (isMoveOutOfBounds(testPosition)) {
                 break;
             } else {
                 if (isMoveCollision(board, testPosition)) {

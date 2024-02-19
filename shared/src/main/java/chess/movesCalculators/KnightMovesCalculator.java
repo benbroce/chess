@@ -15,49 +15,49 @@ public class KnightMovesCalculator extends PieceMovesCalculator {
 
         // check up, left
         testPosition = new ChessPosition((position.getRow() + 2), (position.getColumn() - 1));
-        if (!isMoveOutOfBounds(board, testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
+        if (!isMoveOutOfBounds(testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
             moves.add(new ChessMove(position, testPosition, null));
         }
 
         // check up, right
         testPosition = new ChessPosition((position.getRow() + 2), (position.getColumn() + 1));
-        if (!isMoveOutOfBounds(board, testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
+        if (!isMoveOutOfBounds(testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
             moves.add(new ChessMove(position, testPosition, null));
         }
 
         // check down, left
         testPosition = new ChessPosition((position.getRow() - 2), (position.getColumn() - 1));
-        if (!isMoveOutOfBounds(board, testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
+        if (!isMoveOutOfBounds(testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
             moves.add(new ChessMove(position, testPosition, null));
         }
 
         // check down, right
         testPosition = new ChessPosition((position.getRow() - 2), (position.getColumn() + 1));
-        if (!isMoveOutOfBounds(board, testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
+        if (!isMoveOutOfBounds(testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
             moves.add(new ChessMove(position, testPosition, null));
         }
 
         // check left, up
         testPosition = new ChessPosition((position.getRow() + 1), (position.getColumn() - 2));
-        if (!isMoveOutOfBounds(board, testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
+        if (!isMoveOutOfBounds(testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
             moves.add(new ChessMove(position, testPosition, null));
         }
 
         // check left, down
         testPosition = new ChessPosition((position.getRow() - 1), (position.getColumn() - 2));
-        if (!isMoveOutOfBounds(board, testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
+        if (!isMoveOutOfBounds(testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
             moves.add(new ChessMove(position, testPosition, null));
         }
 
         // check right, up
         testPosition = new ChessPosition((position.getRow() + 1), (position.getColumn() + 2));
-        if (!isMoveOutOfBounds(board, testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
+        if (!isMoveOutOfBounds(testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
             moves.add(new ChessMove(position, testPosition, null));
         }
 
         // check right, down
         testPosition = new ChessPosition((position.getRow() - 1), (position.getColumn() + 2));
-        if (!isMoveOutOfBounds(board, testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
+        if (!isMoveOutOfBounds(testPosition) && (!isMoveCollision(board, testPosition) || isMoveCollisionWithEnemy(board, position, testPosition))) {
             moves.add(new ChessMove(position, testPosition, null));
         }
 
