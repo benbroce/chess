@@ -5,6 +5,7 @@ target
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+.idea/uiDesigner.xml
 
 ### Mac OS ###
 .DS_Store
