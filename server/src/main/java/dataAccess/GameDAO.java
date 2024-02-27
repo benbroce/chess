@@ -9,8 +9,9 @@ public interface GameDAO {
      * Create a new game
      *
      * @param gameName the display name of the game
+     * @return the gameID of the new game
      */
-    void createGame(String gameName);
+    int createGame(String gameName);
 
     /**
      * @param gameID the ID of the game to search for
