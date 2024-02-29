@@ -24,6 +24,12 @@ public interface AuthDAO {
     boolean verifyAuthToken(String authToken);
 
     /**
+     * @param authToken the authToken to lookup
+     * @return the username associated with the authToken, or null if the authToken is invalid
+     */
+    String getUsername(String authToken);
+
+    /**
      * Delete all authentications
      */
     void clearAuths();

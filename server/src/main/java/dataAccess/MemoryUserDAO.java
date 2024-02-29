@@ -14,7 +14,7 @@ public class MemoryUserDAO implements UserDAO {
     @Override
     public void createUser(UserData user) throws DataAccessException {
         if (this.getUser(user.username()) != null) {
-            throw new DataAccessException("already taken");
+            throw new DataAccessException("username already taken");
         }
         this.userTable.add(user);
     }
