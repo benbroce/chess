@@ -6,9 +6,10 @@ import dataAccess.UserDAO;
 import model.UserData;
 import model.request.LoginRequest;
 import model.request.RegisterRequest;
-import model.result.LoginResponse;
-import model.result.RegisterResponse;
+import model.response.LoginResponse;
+import model.response.RegisterResponse;
 import service.serviceExceptions.AlreadyTakenException;
+import service.serviceExceptions.BadRequestException;
 import service.serviceExceptions.UnauthorizedException;
 
 public class UserService {
@@ -29,8 +30,12 @@ public class UserService {
      * @param request the account data of the proposed user
      * @return a response with an authToken to authenticate the current session
      * @throws AlreadyTakenException if the username is already taken
+     * @throws BadRequestException   if the username or password are missing
      */
-    public RegisterResponse register(RegisterRequest request) throws AlreadyTakenException {
+    public RegisterResponse register(RegisterRequest request) throws AlreadyTakenException, BadRequestException {
+        if ((request.username() == null) || (request.password() == null)) {
+            throw new BadRequestException("username or password missing");
+        }
         // convert any DataAccessException -> AlreadyTakenException
         try {
             userDAO.createUser(new UserData(request.username(), request.password(), request.email()));

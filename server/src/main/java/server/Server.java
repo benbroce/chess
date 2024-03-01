@@ -3,6 +3,7 @@ package server;
 import com.google.gson.Gson;
 import dataAccess.*;
 import model.request.CreateGameRequest;
+import model.response.*;
 import model.request.JoinGameRequest;
 import model.request.LoginRequest;
 import model.request.RegisterRequest;
@@ -47,7 +48,9 @@ public class Server {
         Spark.put("/game", this::joinGame);
 
         // exception handling
-//        Spark.exception(AlreadyTakenException.class, );
+        Spark.exception(AlreadyTakenException.class, this::alreadyTakenHandler);
+        Spark.exception(BadRequestException.class, this::badRequestHandler);
+        Spark.exception(UnauthorizedException.class, this::unauthorizedHandler);
 
         Spark.awaitInitialization();
         return Spark.port();
@@ -66,9 +69,10 @@ public class Server {
         return "";
     }
 
-    private Object register(Request req, Response res) throws AlreadyTakenException {
+    private Object register(Request req, Response res) throws AlreadyTakenException, BadRequestException {
         RegisterRequest requestBody = (new Gson()).fromJson(req.body(), RegisterRequest.class);
         RegisterResponse responseBody = this.userService.register(requestBody);
+        res.type("application/json");
         res.status(200);
         return (new Gson()).toJson(responseBody);
     }
@@ -76,6 +80,7 @@ public class Server {
     private Object login(Request req, Response res) throws UnauthorizedException {
         LoginRequest requestBody = (new Gson()).fromJson(req.body(), LoginRequest.class);
         LoginResponse responseBody = this.userService.login(requestBody);
+        res.type("application/json");
         res.status(200);
         return (new Gson()).toJson(responseBody);
     }
@@ -90,6 +95,7 @@ public class Server {
     private Object listGames(Request req, Response res) throws UnauthorizedException {
         String authToken = req.headers("Authorization");
         ListGamesResponse responseBody = this.gameService.listGames(authToken);
+        res.type("application/json");
         res.status(200);
         return (new Gson()).toJson(responseBody);
     }
@@ -98,6 +104,7 @@ public class Server {
         String authToken = req.headers("Authorization");
         CreateGameRequest requestBody = (new Gson()).fromJson(req.body(), CreateGameRequest.class);
         CreateGameResponse responseBody = this.gameService.createGame(authToken, requestBody);
+        res.type("application/json");
         res.status(200);
         return (new Gson()).toJson(responseBody);
     }
@@ -113,8 +120,27 @@ public class Server {
 
     // Exception Handlers
 
-//    private void alreadyTakenHandler(AlreadyTakenException ex, Request req, Response res) {
-//        res.status(403);
-//        res.body()
-//    }
+    public Object alreadyTakenHandler(AlreadyTakenException e, Request req, Response res) {
+        String body = (new Gson()).toJson(new FailureResponse("Error: already taken"));
+        res.type("application/json");
+        res.status(403);
+        res.body(body);
+        return (body);
+    }
+
+    public Object badRequestHandler(BadRequestException e, Request req, Response res) {
+        String body = (new Gson()).toJson(new FailureResponse("Error: bad request"));
+        res.type("application/json");
+        res.status(400);
+        res.body(body);
+        return (body);
+    }
+
+    public Object unauthorizedHandler(UnauthorizedException e, Request req, Response res) {
+        String body = (new Gson()).toJson(new FailureResponse("Error: unauthorized"));
+        res.type("application/json");
+        res.status(401);
+        res.body(body);
+        return (body);
+    }
 }
