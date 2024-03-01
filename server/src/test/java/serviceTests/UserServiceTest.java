@@ -2,6 +2,8 @@ package serviceTests;
 
 import dataAccess.*;
 import model.UserData;
+import model.request.LoginRequest;
+import model.request.RegisterRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.UserService;
@@ -29,7 +31,8 @@ class UserServiceTest {
         assertNull(userDAO.getUser("testUser"));
         // perform register
         try {
-            assertNotNull(userService.register("testUser", "testPass", "testEmail"));
+            assertNotNull(userService.register(
+                    new RegisterRequest("testUser", "testPass", "testEmail")));
         } catch (AlreadyTakenException e) {
             fail("Username already taken");
         }
@@ -53,7 +56,8 @@ class UserServiceTest {
         // perform register, compare post-state
         // (failed registration due to duplicate username, ensure original user kept)
         assertThrows(AlreadyTakenException.class,
-                (() -> userService.register("testUser", "diffPass", "diffEmail")));
+                (() -> userService.register(
+                        new RegisterRequest("testUser", "diffPass", "diffEmail"))));
         assertEquals(userDAO.getUser("testUser"),
                 (new UserData("testUser", "testPass", "testEmail")));
     }
@@ -72,7 +76,7 @@ class UserServiceTest {
         // perform login
         String authToken = null;
         try {
-            authToken = userService.login("testUser", "testPass");
+            authToken = userService.login(new LoginRequest("testUser", "testPass")).authToken();
         } catch (UnauthorizedException e) {
             fail("Credentials don't match");
         }
@@ -92,7 +96,8 @@ class UserServiceTest {
         assertEquals(userDAO.getUser("testUser"),
                 (new UserData("testUser", "testPass", "testEmail")));
         // perform invalid login, compare post-state (throws a credentialing error)
-        assertThrows(UnauthorizedException.class, (() -> userService.login("testUser", "wrongPass")));
+        assertThrows(UnauthorizedException.class,
+                (() -> userService.login(new LoginRequest("testUser", "wrongPass"))));
     }
 
     @Test

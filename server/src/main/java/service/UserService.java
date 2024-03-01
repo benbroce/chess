@@ -4,6 +4,10 @@ import dataAccess.AuthDAO;
 import dataAccess.DataAccessException;
 import dataAccess.UserDAO;
 import model.UserData;
+import model.request.LoginRequest;
+import model.request.RegisterRequest;
+import model.result.LoginResponse;
+import model.result.RegisterResponse;
 import service.serviceExceptions.AlreadyTakenException;
 import service.serviceExceptions.UnauthorizedException;
 
@@ -22,35 +26,32 @@ public class UserService {
     /**
      * Create a new user in the user database and login
      *
-     * @param username the username of the proposed user
-     * @param password the password of the proposed user
-     * @param email    the email address of the proposed user
-     * @return an authToken to authenticate the current session
+     * @param request the account data of the proposed user
+     * @return a response with an authToken to authenticate the current session
      * @throws AlreadyTakenException if the username is already taken
      */
-    public String register(String username, String password, String email) throws AlreadyTakenException {
+    public RegisterResponse register(RegisterRequest request) throws AlreadyTakenException {
         // convert any DataAccessException -> AlreadyTakenException
         try {
-            userDAO.createUser(new UserData(username, password, email));
+            userDAO.createUser(new UserData(request.username(), request.password(), request.email()));
         } catch (DataAccessException e) {
             throw new AlreadyTakenException("username already taken");
         }
-        return authDAO.createAuth(username);
+        return new RegisterResponse(request.username(), authDAO.createAuth(request.username()));
     }
 
     /**
      * Return an authToken granting authentication privileges to the current session
      *
-     * @param username the username of the user
-     * @param password the password of the user
-     * @return an authToken to authenticate the current session
+     * @param request the login credentials of the user
+     * @return a response with an authToken to authenticate the current session
      * @throws UnauthorizedException if the credentials are invalid
      */
-    public String login(String username, String password) throws UnauthorizedException {
-        if (!userDAO.verifyUser(username, password)) {
+    public LoginResponse login(LoginRequest request) throws UnauthorizedException {
+        if (!userDAO.verifyUser(request.username(), request.password())) {
             throw new UnauthorizedException("invalid login credentials");
         }
-        return authDAO.createAuth(username);
+        return new LoginResponse(request.username(), authDAO.createAuth(request.username()));
     }
 
     /**
