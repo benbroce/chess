@@ -12,18 +12,18 @@ public class PawnMovesCalculator extends PieceMovesCalculator {
         ChessPosition testPosition;
 
         // parameters for black vs white pieces
-        final boolean IS_WHITE = (board.getPiece(position).getTeamColor() == ChessGame.TeamColor.WHITE);
-        final int STARTING_ROW = IS_WHITE ? 2 : (ChessBoard.BOARD_SIDE_LENGTH - 1);
-        final int PROMOTION_ROW = IS_WHITE ? ChessBoard.BOARD_SIDE_LENGTH : 1;
+        final boolean isWhite = (board.getPiece(position).getTeamColor() == ChessGame.TeamColor.WHITE);
+        final int startingRow = isWhite ? 2 : (ChessBoard.BOARD_SIDE_LENGTH - 1);
+        final int promotionRow = isWhite ? ChessBoard.BOARD_SIDE_LENGTH : 1;
 
         // check forward
-        testPosition = new ChessPosition((position.getRow() + (IS_WHITE ? 1 : -1)), position.getColumn());
+        testPosition = new ChessPosition((position.getRow() + (isWhite ? 1 : -1)), position.getColumn());
         if (!isMoveOutOfBounds(testPosition) && !isMoveCollision(board, testPosition)) {
             moves.add(new ChessMove(position, testPosition, null));
 
             // check double forward (only valid from starting row)
-            if (position.getRow() == STARTING_ROW) {
-                testPosition = new ChessPosition((position.getRow() + (IS_WHITE ? 2 : -2)), position.getColumn());
+            if (position.getRow() == startingRow) {
+                testPosition = new ChessPosition((position.getRow() + (isWhite ? 2 : -2)), position.getColumn());
                 if (!isMoveCollision(board, testPosition)) {
                     moves.add(new ChessMove(position, testPosition, null));
                 }
@@ -31,13 +31,13 @@ public class PawnMovesCalculator extends PieceMovesCalculator {
         }
 
         // check diagonal left (only valid on capture)
-        testPosition = new ChessPosition((position.getRow() + (IS_WHITE ? 1 : -1)), (position.getColumn() - 1));
+        testPosition = new ChessPosition((position.getRow() + (isWhite ? 1 : -1)), (position.getColumn() - 1));
         if (!isMoveOutOfBounds(testPosition) && isMoveCollisionWithEnemy(board, position, testPosition)) {
             moves.add(new ChessMove(position, testPosition, null));
         }
 
         // check diagonal right (only valid on capture)
-        testPosition = new ChessPosition((position.getRow() + (IS_WHITE ? 1 : -1)), (position.getColumn() + 1));
+        testPosition = new ChessPosition((position.getRow() + (isWhite ? 1 : -1)), (position.getColumn() + 1));
         if (!isMoveOutOfBounds(testPosition) && isMoveCollisionWithEnemy(board, position, testPosition)) {
             moves.add(new ChessMove(position, testPosition, null));
         }
@@ -45,7 +45,7 @@ public class PawnMovesCalculator extends PieceMovesCalculator {
         // check promotion on all moves (hit promotion row? add all possible promotion moves)
         HashSet<ChessMove> movesWithPromotions = new HashSet<>();
         for (ChessMove move : moves) {
-            if (move.getEndPosition().getRow() == PROMOTION_ROW) {
+            if (move.getEndPosition().getRow() == promotionRow) {
                 ChessPosition startPosition = move.getStartPosition();
                 ChessPosition endPosition = move.getEndPosition();
                 movesWithPromotions.add(new ChessMove(startPosition, endPosition, ChessPiece.PieceType.ROOK));
