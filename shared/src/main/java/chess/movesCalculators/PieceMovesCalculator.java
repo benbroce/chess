@@ -5,6 +5,7 @@ import chess.ChessMove;
 import chess.ChessPosition;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 public abstract class PieceMovesCalculator {
     public abstract Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition position);
@@ -57,5 +58,36 @@ public abstract class PieceMovesCalculator {
         boolean sameOnCol = (move.getEndPosition().getColumn() == move.getStartPosition().getColumn());
         boolean doubleOnCol = (Math.abs(move.getEndPosition().getColumn() - move.getStartPosition().getColumn()) == 2);
         return ((sameOnRow && doubleOnCol) || (sameOnCol && doubleOnRow));
+    }
+
+    /**
+     * Adds moves to a collection of moves for a piece moving along a linear path (bishop, for example),
+     * with steps defined in the generateTestPosition lambda,
+     * stopping on collision with another piece (after capture if it is an enemy) or the edge of the board
+     *
+     * @param board                the board to consider collisions on
+     * @param position             the starting position of the piece
+     * @param moves                the collection to add moves to
+     * @param generateTestPosition a lambda function used to generate steps along the linear test path
+     *                             (maps number of steps -> ChessPosition)
+     */
+    public static void addLinearMovesUntilCollision(ChessBoard board,
+                                                    ChessPosition position,
+                                                    Collection<ChessMove> moves,
+                                                    Function<Integer, ChessPosition> generateTestPosition) {
+        for (int numMoves = 1; true; ++numMoves) {
+            ChessPosition testPosition = generateTestPosition.apply(numMoves);
+            if (isMoveOutOfBounds(testPosition)) {
+                break;
+            } else {
+                if (isMoveCollision(board, testPosition)) {
+                    if (isMoveCollisionWithEnemy(board, position, testPosition)) {
+                        moves.add(new ChessMove(position, testPosition, null));
+                    }
+                    break;
+                }
+                moves.add(new ChessMove(position, testPosition, null));
+            }
+        }
     }
 }

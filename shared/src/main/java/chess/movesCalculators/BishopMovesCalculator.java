@@ -14,68 +14,20 @@ public class BishopMovesCalculator extends PieceMovesCalculator {
         ChessPosition testPosition;
 
         // check up, right
-        for (int numMoves = 1; true; ++numMoves) {
-            testPosition = new ChessPosition((position.getRow() + numMoves), (position.getColumn() + numMoves));
-            if (isMoveOutOfBounds(testPosition)) {
-                break;
-            } else {
-                if (isMoveCollision(board, testPosition)) {
-                    if (isMoveCollisionWithEnemy(board, position, testPosition)) {
-                        moves.add(new ChessMove(position, testPosition, null));
-                    }
-                    break;
-                }
-                moves.add(new ChessMove(position, testPosition, null));
-            }
-        }
+        PieceMovesCalculator.addLinearMovesUntilCollision(board, position, moves,
+                (numMoves -> new ChessPosition((position.getRow() + numMoves), (position.getColumn() + numMoves))));
 
         // check up, left
-        for (int numMoves = 1; true; ++numMoves) {
-            testPosition = new ChessPosition((position.getRow() + numMoves), (position.getColumn() - numMoves));
-            if (isMoveOutOfBounds(testPosition)) {
-                break;
-            } else {
-                if (isMoveCollision(board, testPosition)) {
-                    if (isMoveCollisionWithEnemy(board, position, testPosition)) {
-                        moves.add(new ChessMove(position, testPosition, null));
-                    }
-                    break;
-                }
-                moves.add(new ChessMove(position, testPosition, null));
-            }
-        }
+        PieceMovesCalculator.addLinearMovesUntilCollision(board, position, moves,
+                (numMoves -> new ChessPosition((position.getRow() + numMoves), (position.getColumn() - numMoves))));
 
         // check down, right
-        for (int numMoves = 1; true; ++numMoves) {
-            testPosition = new ChessPosition((position.getRow() - numMoves), (position.getColumn() + numMoves));
-            if (isMoveOutOfBounds(testPosition)) {
-                break;
-            } else {
-                if (isMoveCollision(board, testPosition)) {
-                    if (isMoveCollisionWithEnemy(board, position, testPosition)) {
-                        moves.add(new ChessMove(position, testPosition, null));
-                    }
-                    break;
-                }
-                moves.add(new ChessMove(position, testPosition, null));
-            }
-        }
+        PieceMovesCalculator.addLinearMovesUntilCollision(board, position, moves,
+                (numMoves -> new ChessPosition((position.getRow() - numMoves), (position.getColumn() + numMoves))));
 
         // check down, left
-        for (int numMoves = 1; true; ++numMoves) {
-            testPosition = new ChessPosition((position.getRow() - numMoves), (position.getColumn() - numMoves));
-            if (isMoveOutOfBounds(testPosition)) {
-                break;
-            } else {
-                if (isMoveCollision(board, testPosition)) {
-                    if (isMoveCollisionWithEnemy(board, position, testPosition)) {
-                        moves.add(new ChessMove(position, testPosition, null));
-                    }
-                    break;
-                }
-                moves.add(new ChessMove(position, testPosition, null));
-            }
-        }
+        PieceMovesCalculator.addLinearMovesUntilCollision(board, position, moves,
+                (numMoves -> new ChessPosition((position.getRow() - numMoves), (position.getColumn() - numMoves))));
 
         return moves;
     }
