@@ -72,7 +72,7 @@ public class GameService {
         if (gameData == null) {
             throw new BadRequestException("requested game does not exist");
         }
-        if (request.playerColor().isEmpty()) {
+        if ((request.playerColor() == null) || request.playerColor().isEmpty()) {
             return; // observation mode
         }
         ChessGame.TeamColor playerColor = (request.playerColor().equals("WHITE"))
