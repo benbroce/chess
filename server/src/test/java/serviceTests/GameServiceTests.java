@@ -1,6 +1,8 @@
 package serviceTests;
 
 import dataAccess.*;
+import dataAccess.memoryDAO.MemoryAuthDAO;
+import dataAccess.memoryDAO.MemoryGameDAO;
 import model.GameData;
 import model.request.CreateGameRequest;
 import model.request.JoinGameRequest;
@@ -15,7 +17,7 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class GameServiceTest {
+class GameServiceTests {
     private GameService gameService;
     private AuthDAO authDAO;
     private GameDAO gameDAO;

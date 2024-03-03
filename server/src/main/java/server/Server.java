@@ -2,6 +2,9 @@ package server;
 
 import com.google.gson.Gson;
 import dataAccess.*;
+import dataAccess.memoryDAO.MemoryAuthDAO;
+import dataAccess.memoryDAO.MemoryGameDAO;
+import dataAccess.memoryDAO.MemoryUserDAO;
 import model.request.CreateGameRequest;
 import model.response.*;
 import model.request.JoinGameRequest;
@@ -22,8 +25,7 @@ public class Server {
     private final GameService gameService;
 
     public Server() {
-        // initialize DAO instances
-        // Data Access Objects
+        // initialize DAO (Data Access Object) instances
         AuthDAO authDAO = new MemoryAuthDAO();
         GameDAO gameDAO = new MemoryGameDAO();
         UserDAO userDAO = new MemoryUserDAO();

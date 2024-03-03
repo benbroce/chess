@@ -1,6 +1,8 @@
 package serviceTests;
 
 import dataAccess.*;
+import dataAccess.memoryDAO.MemoryAuthDAO;
+import dataAccess.memoryDAO.MemoryUserDAO;
 import model.UserData;
 import model.request.LoginRequest;
 import model.request.RegisterRequest;
@@ -13,7 +15,7 @@ import service.serviceExceptions.UnauthorizedException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserServiceTest {
+class UserServiceTests {
     private UserService userService;
     private AuthDAO authDAO;
     private UserDAO userDAO;

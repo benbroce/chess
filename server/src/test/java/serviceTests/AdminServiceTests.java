@@ -1,6 +1,9 @@
 package serviceTests;
 
 import dataAccess.*;
+import dataAccess.memoryDAO.MemoryAuthDAO;
+import dataAccess.memoryDAO.MemoryGameDAO;
+import dataAccess.memoryDAO.MemoryUserDAO;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,7 +13,7 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AdminServiceTest {
+class AdminServiceTests {
     private AdminService adminService;
     private AuthDAO authDAO;
     private GameDAO gameDAO;
