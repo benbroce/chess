@@ -5,6 +5,7 @@ import dataAccess.memoryDAO.MemoryAuthDAO;
 import dataAccess.memoryDAO.MemoryGameDAO;
 import dataAccess.memoryDAO.MemoryUserDAO;
 import model.UserData;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.AdminService;
@@ -25,6 +26,12 @@ class AdminServiceTests {
         gameDAO = new MemoryGameDAO();
         userDAO = new MemoryUserDAO();
         adminService = new AdminService(authDAO, gameDAO, userDAO);
+        adminService.clearApp();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        adminService.clearApp();
     }
 
     @Test

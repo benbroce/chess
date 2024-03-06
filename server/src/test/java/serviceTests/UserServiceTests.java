@@ -6,6 +6,7 @@ import dataAccess.memoryDAO.MemoryUserDAO;
 import model.UserData;
 import model.request.LoginRequest;
 import model.request.RegisterRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.UserService;
@@ -25,6 +26,14 @@ class UserServiceTests {
         authDAO = new MemoryAuthDAO();
         userDAO = new MemoryUserDAO();
         userService = new UserService(authDAO, userDAO);
+        authDAO.clearAuths();
+        userDAO.clearUsers();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        authDAO.clearAuths();
+        userDAO.clearUsers();
     }
 
     @Test

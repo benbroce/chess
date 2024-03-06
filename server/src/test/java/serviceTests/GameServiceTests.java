@@ -6,6 +6,7 @@ import dataAccess.memoryDAO.MemoryGameDAO;
 import model.GameData;
 import model.request.CreateGameRequest;
 import model.request.JoinGameRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.GameService;
@@ -27,6 +28,14 @@ class GameServiceTests {
         authDAO = new MemoryAuthDAO();
         gameDAO = new MemoryGameDAO();
         gameService = new GameService(authDAO, gameDAO);
+        authDAO.clearAuths();
+        gameDAO.clearGames();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        authDAO.clearAuths();
+        gameDAO.clearGames();
     }
 
     @Test
