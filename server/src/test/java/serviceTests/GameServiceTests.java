@@ -39,33 +39,39 @@ class GameServiceTests {
     }
 
     @Test
-    public void listGamesTestPositive() {
+    public void listGamesTestPositive() throws BadRequestException, UnauthorizedException, DataAccessException {
         // set pre-state
         int gameID0 = gameDAO.createGame("game0");
         int gameID1 = gameDAO.createGame("game1");
-        String authToken = authDAO.createAuth("testUser");
+        String authToken = "";
+        try {
+            authToken = authDAO.createAuth("testUser");
+        } catch (DataAccessException e) {
+            fail("invalid username");
+        }
         // confirm pre-state
         assertNotNull(gameDAO.getGame(gameID0));
         assertNotNull(gameDAO.getGame(gameID1));
         assertEquals(authDAO.getUsername(authToken), "testUser");
         // perform listGames
-        ArrayList<GameData> gameList = new ArrayList<>();
-        try {
-            gameList = gameService.listGames(authToken).games();
-        } catch (UnauthorizedException e) {
-            fail("bad auth token");
-        }
+        ArrayList<GameData> gameList;
+        gameList = gameService.listGames(authToken).games();
         // compare post-state
         assertEquals(gameList.get(0).gameName(), "game0");
         assertEquals(gameList.get(1).gameName(), "game1");
     }
 
     @Test
-    public void listGamesTestNegative() {
+    public void listGamesTestNegative() throws DataAccessException {
         // set pre-state
         int gameID1 = gameDAO.createGame("game0");
         int gameID2 = gameDAO.createGame("game1");
-        String authToken = authDAO.createAuth("testUser");
+        String authToken = "";
+        try {
+            authToken = authDAO.createAuth("testUser");
+        } catch (DataAccessException e) {
+            fail("invalid username");
+        }
         // confirm pre-state
         assertNotNull(gameDAO.getGame(gameID1));
         assertNotNull(gameDAO.getGame(gameID2));
@@ -75,9 +81,14 @@ class GameServiceTests {
     }
 
     @Test
-    public void createGameTestPositive() {
+    public void createGameTestPositive() throws BadRequestException, DataAccessException {
         // set pre-state
-        String authToken = authDAO.createAuth("testUser");
+        String authToken = "";
+        try {
+            authToken = authDAO.createAuth("testUser");
+        } catch (DataAccessException e) {
+            fail("invalid username");
+        }
         // confirm pre-state
         assertEquals(authDAO.getUsername(authToken), "testUser");
         // perform createGame
@@ -92,9 +103,14 @@ class GameServiceTests {
     }
 
     @Test
-    public void createGameTestNegative() {
+    public void createGameTestNegative() throws DataAccessException {
         // set pre-state
-        String authToken = authDAO.createAuth("testUser");
+        String authToken = "";
+        try {
+            authToken = authDAO.createAuth("testUser");
+        } catch (DataAccessException e) {
+            fail("invalid username");
+        }
         // confirm pre-state
         assertEquals(authDAO.getUsername(authToken), "testUser");
         // perform createGame (invalid, bad authentication)
@@ -106,10 +122,15 @@ class GameServiceTests {
     }
 
     @Test
-    public void joinGameTestPositive() {
+    public void joinGameTestPositive() throws DataAccessException {
         // set pre-state
         int gameID = gameDAO.createGame("game0");
-        String authToken = authDAO.createAuth("testUser");
+        String authToken = "";
+        try {
+            authToken = authDAO.createAuth("testUser");
+        } catch (DataAccessException e) {
+            fail("invalid username");
+        }
         // confirm pre-state
         assertNotNull(gameDAO.getGame(gameID));
         assertNull(gameDAO.getGame(gameID).whiteUsername());
@@ -129,19 +150,26 @@ class GameServiceTests {
     }
 
     @Test
-    public void joinGameTestNegative() {
+    public void joinGameTestNegative() throws DataAccessException {
         // set pre-state
         int gameID = gameDAO.createGame("game0");
-        String authToken = authDAO.createAuth("testUser");
-        String opponentAuthToken = authDAO.createAuth("opponent");
+        String authToken = "";
+        String opponentAuthToken = "";
+        try {
+            authToken = authDAO.createAuth("testUser");
+            opponentAuthToken = authDAO.createAuth("opponent");
+        } catch (DataAccessException e) {
+            fail("invalid username");
+        }
         // confirm pre-state
         assertNotNull(gameDAO.getGame(gameID));
         assertNull(gameDAO.getGame(gameID).whiteUsername());
         assertEquals(authDAO.getUsername(authToken), "testUser");
         assertEquals(authDAO.getUsername(opponentAuthToken), "opponent");
         // perform invalid joinGame (game doesn't exist), confirm throw
+        String finalAuthToken = authToken;
         assertThrows(BadRequestException.class,
-                (() -> gameService.joinGame(authToken, new JoinGameRequest("WHITE", -1))));
+                (() -> gameService.joinGame(finalAuthToken, new JoinGameRequest("WHITE", -1))));
         // perform invalid joinGame (credentials incorrect), confirm throw
         assertThrows(UnauthorizedException.class,
                 (() -> gameService.joinGame("wrongAuthToken",
@@ -156,8 +184,9 @@ class GameServiceTests {
         } catch (AlreadyTakenException e) {
             fail("opponent position already taken");
         }
+        String finalAuthToken1 = authToken;
         assertThrows(AlreadyTakenException.class,
-                (() -> gameService.joinGame(authToken, new JoinGameRequest("BLACK", gameID))));
+                (() -> gameService.joinGame(finalAuthToken1, new JoinGameRequest("BLACK", gameID))));
         // compare post-state
         assertEquals(gameDAO.getGame(gameID).blackUsername(), "opponent");
     }

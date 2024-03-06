@@ -30,11 +30,16 @@ public class GameService {
      *
      * @param authToken the authentication token for the current session
      * @return a response with the list of all current games
+     * @throws BadRequestException   if the authToken is null
      * @throws UnauthorizedException if the authToken is invalid
      */
-    public ListGamesResponse listGames(String authToken) throws UnauthorizedException {
-        if (!authDAO.verifyAuthToken(authToken)) {
-            throw new UnauthorizedException("bad auth token");
+    public ListGamesResponse listGames(String authToken) throws UnauthorizedException, BadRequestException {
+        try {
+            if (!authDAO.verifyAuthToken(authToken)) {
+                throw new UnauthorizedException("bad auth token");
+            }
+        } catch (DataAccessException e) {
+            throw new BadRequestException("null auth token");
         }
         return new ListGamesResponse(gameDAO.listGames());
     }
@@ -45,11 +50,17 @@ public class GameService {
      * @param authToken the authentication token for the current session
      * @param request   a request containing the desired display name of the game
      * @return a response with the internal gameID
+     * @throws BadRequestException   if the authToken is null
      * @throws UnauthorizedException if the authToken is invalid
      */
-    public CreateGameResponse createGame(String authToken, CreateGameRequest request) throws UnauthorizedException {
-        if (!authDAO.verifyAuthToken(authToken)) {
-            throw new UnauthorizedException("bad auth token");
+    public CreateGameResponse createGame(String authToken, CreateGameRequest request)
+            throws UnauthorizedException, BadRequestException {
+        try {
+            if (!authDAO.verifyAuthToken(authToken)) {
+                throw new UnauthorizedException("bad auth token");
+            }
+        } catch (DataAccessException e) {
+            throw new BadRequestException("null auth token");
         }
         return new CreateGameResponse(gameDAO.createGame(request.gameName()));
     }
@@ -59,14 +70,18 @@ public class GameService {
      *
      * @param authToken the authentication token for the current session
      * @param request   a request containing the player color to join as and the ID of the game to enter
-     * @throws BadRequestException   if the requested game does not exist
+     * @throws BadRequestException   if the requested game does not exist or the authToken is null
      * @throws UnauthorizedException if the authToken is invalid
      * @throws AlreadyTakenException if the requested team position is already claimed
      */
     public void joinGame(String authToken, JoinGameRequest request)
             throws BadRequestException, UnauthorizedException, AlreadyTakenException {
-        if (!authDAO.verifyAuthToken(authToken)) {
-            throw new UnauthorizedException("bad auth token");
+        try {
+            if (!authDAO.verifyAuthToken(authToken)) {
+                throw new UnauthorizedException("bad auth token");
+            }
+        } catch (DataAccessException e) {
+            throw new BadRequestException("null auth token");
         }
         GameData gameData = gameDAO.getGame(request.gameID());
         if (gameData == null) {
@@ -82,7 +97,12 @@ public class GameService {
                 ? (gameData.whiteUsername() != null) : (gameData.blackUsername() != null))) {
             throw new AlreadyTakenException("requested team already claimed");
         }
-        String playerUsername = authDAO.getUsername(authToken);
+        String playerUsername;
+        try {
+            playerUsername = authDAO.getUsername(authToken);
+        } catch (DataAccessException e) {
+            throw new BadRequestException("null authToken");
+        }
         String newWhiteUsername = (playerColor == ChessGame.TeamColor.WHITE) ? playerUsername : gameData.whiteUsername();
         String newBlackUsername = (playerColor == ChessGame.TeamColor.BLACK) ? playerUsername : gameData.blackUsername();
         gameData = new GameData(

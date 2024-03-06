@@ -36,13 +36,18 @@ public class UserService {
         if ((request.username() == null) || (request.password() == null)) {
             throw new BadRequestException("username or password missing");
         }
-        // convert any DataAccessException -> AlreadyTakenException
+        // convert DataAccessException -> AlreadyTakenException
         try {
             userDAO.createUser(new UserData(request.username(), request.password(), request.email()));
         } catch (DataAccessException e) {
             throw new AlreadyTakenException("username already taken");
         }
-        return new RegisterResponse(request.username(), authDAO.createAuth(request.username()));
+        // convert DataAccessException -> BadRequestException
+        try {
+            return new RegisterResponse(request.username(), authDAO.createAuth(request.username()));
+        } catch (DataAccessException e) {
+            throw new BadRequestException("invalid username");
+        }
     }
 
     /**
@@ -50,13 +55,19 @@ public class UserService {
      *
      * @param request the login credentials of the user
      * @return a response with an authToken to authenticate the current session
+     * @throws BadRequestException   if the username invalid
      * @throws UnauthorizedException if the credentials are invalid
      */
-    public LoginResponse login(LoginRequest request) throws UnauthorizedException {
+    public LoginResponse login(LoginRequest request) throws UnauthorizedException, BadRequestException {
         if (!userDAO.verifyUser(request.username(), request.password())) {
             throw new UnauthorizedException("invalid login credentials");
         }
-        return new LoginResponse(request.username(), authDAO.createAuth(request.username()));
+        // convert DataAccessException -> BadRequestException
+        try {
+            return new LoginResponse(request.username(), authDAO.createAuth(request.username()));
+        } catch (DataAccessException e) {
+            throw new BadRequestException("invalid username");
+        }
     }
 
     /**
@@ -64,11 +75,20 @@ public class UserService {
      *
      * @param authToken the authentication token for the current session
      * @throws UnauthorizedException if the authToken is invalid
+     * @throws BadRequestException   if the authToken is null
      */
-    public void logout(String authToken) throws UnauthorizedException {
-        if (!authDAO.verifyAuthToken(authToken)) {
-            throw new UnauthorizedException("bad auth token");
+    public void logout(String authToken) throws UnauthorizedException, BadRequestException {
+        try {
+            if (!authDAO.verifyAuthToken(authToken)) {
+                throw new UnauthorizedException("bad auth token");
+            }
+        } catch (DataAccessException e) {
+            throw new BadRequestException("null auth token");
         }
-        authDAO.deleteAuth(authToken);
+        try {
+            authDAO.deleteAuth(authToken);
+        } catch (DataAccessException e) {
+            throw new BadRequestException("null authToken");
+        }
     }
 }

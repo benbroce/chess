@@ -35,15 +35,11 @@ class AdminServiceTests {
     }
 
     @Test
-    public void clearAppTestPositive() {
+    public void clearAppTestPositive() throws DataAccessException {
         // set pre-state
         String preAuthToken = authDAO.createAuth("testAuth");
         int preGameID = gameDAO.createGame("testGame");
-        try {
-            userDAO.createUser(new UserData("testUser", "testPass", "testEmail"));
-        } catch (DataAccessException e) {
-            fail("Could not create user");
-        }
+        userDAO.createUser(new UserData("testUser", "testPass", "testEmail"));
         // confirm pre-state
         assertTrue(authDAO.verifyAuthToken(preAuthToken));
         assertNotNull(gameDAO.getGame(preGameID));

@@ -79,7 +79,7 @@ public class Server {
         return (new Gson()).toJson(responseBody);
     }
 
-    private Object login(Request req, Response res) throws UnauthorizedException {
+    private Object login(Request req, Response res) throws UnauthorizedException, BadRequestException {
         LoginRequest requestBody = (new Gson()).fromJson(req.body(), LoginRequest.class);
         LoginResponse responseBody = this.userService.login(requestBody);
         res.type("application/json");
@@ -87,14 +87,14 @@ public class Server {
         return (new Gson()).toJson(responseBody);
     }
 
-    private Object logout(Request req, Response res) throws UnauthorizedException {
+    private Object logout(Request req, Response res) throws UnauthorizedException, BadRequestException {
         String authToken = req.headers("Authorization");
         this.userService.logout(authToken);
         res.status(200);
         return "";
     }
 
-    private Object listGames(Request req, Response res) throws UnauthorizedException {
+    private Object listGames(Request req, Response res) throws UnauthorizedException, BadRequestException {
         String authToken = req.headers("Authorization");
         ListGamesResponse responseBody = this.gameService.listGames(authToken);
         res.type("application/json");
@@ -102,7 +102,7 @@ public class Server {
         return (new Gson()).toJson(responseBody);
     }
 
-    private Object createGame(Request req, Response res) throws UnauthorizedException {
+    private Object createGame(Request req, Response res) throws UnauthorizedException, BadRequestException {
         String authToken = req.headers("Authorization");
         CreateGameRequest requestBody = (new Gson()).fromJson(req.body(), CreateGameRequest.class);
         CreateGameResponse responseBody = this.gameService.createGame(authToken, requestBody);

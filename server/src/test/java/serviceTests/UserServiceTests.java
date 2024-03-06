@@ -77,7 +77,7 @@ class UserServiceTests {
     }
 
     @Test
-    public void loginTestPositive() {
+    public void loginTestPositive() throws DataAccessException {
         // set pre-state
         try {
             userDAO.createUser(new UserData("testUser", "testPass", "testEmail"));
@@ -91,6 +91,8 @@ class UserServiceTests {
         String authToken = null;
         try {
             authToken = userService.login(new LoginRequest("testUser", "testPass")).authToken();
+        } catch (BadRequestException e) {
+            fail("Invalid username");
         } catch (UnauthorizedException e) {
             fail("Credentials don't match");
         }
@@ -115,7 +117,7 @@ class UserServiceTests {
     }
 
     @Test
-    public void logoutTestPositive() {
+    public void logoutTestPositive() throws DataAccessException {
         // set pre-state
         String authToken = null;
         try {
@@ -131,6 +133,8 @@ class UserServiceTests {
         // perform logout
         try {
             userService.logout(authToken);
+        } catch (BadRequestException e) {
+            fail("Null authToken");
         } catch (UnauthorizedException e) {
             fail("Invalid authToken");
         }
@@ -139,7 +143,7 @@ class UserServiceTests {
     }
 
     @Test
-    public void logoutTestNegative() {
+    public void logoutTestNegative() throws DataAccessException {
         // set pre-state
         String authToken = null;
         try {
