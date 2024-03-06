@@ -45,12 +45,12 @@ public class GameService {
     }
 
     /**
-     * Create a new game in the database
+     * Create a new game in the database (can have the same name as another game)
      *
      * @param authToken the authentication token for the current session
      * @param request   a request containing the desired display name of the game
      * @return a response with the internal gameID
-     * @throws BadRequestException   if the authToken is null
+     * @throws BadRequestException   if the authToken or gameName is null
      * @throws UnauthorizedException if the authToken is invalid
      */
     public CreateGameResponse createGame(String authToken, CreateGameRequest request)
@@ -62,7 +62,11 @@ public class GameService {
         } catch (DataAccessException e) {
             throw new BadRequestException("null auth token");
         }
-        return new CreateGameResponse(gameDAO.createGame(request.gameName()));
+        try {
+            return new CreateGameResponse(gameDAO.createGame(request.gameName()));
+        } catch (DataAccessException e) {
+            throw new BadRequestException("null gameName");
+        }
     }
 
     /**

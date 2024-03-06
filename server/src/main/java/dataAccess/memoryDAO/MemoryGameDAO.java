@@ -24,7 +24,10 @@ public class MemoryGameDAO implements GameDAO {
     }
 
     @Override
-    public int createGame(String gameName) {
+    public int createGame(String gameName) throws DataAccessException {
+        if (gameName == null) {
+            throw new DataAccessException("null gameName");
+        }
         int gameID = generateGameID();
         this.gameTable.put(gameID, (new GameData(
                 gameID, null, null, gameName, (new ChessGame()))));
@@ -46,7 +49,10 @@ public class MemoryGameDAO implements GameDAO {
         if (getGame(gameID) == null) {
             throw new DataAccessException("cannot update non-existing game");
         }
-        this.gameTable.put(gameID, game);
+        if (gameID != game.gameID()) {
+            this.gameTable.remove(gameID);
+        }
+        this.gameTable.put(game.gameID(), game);
     }
 
     @Override
