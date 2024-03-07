@@ -11,7 +11,6 @@ public class BishopMovesCalculator extends PieceMovesCalculator {
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition position) {
         HashSet<ChessMove> moves = new HashSet<>();
-        ChessPosition testPosition;
 
         // check up, right
         PieceMovesCalculator.addLinearMovesUntilCollision(board, position, moves,
