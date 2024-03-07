@@ -59,8 +59,12 @@ public class UserService {
      * @throws UnauthorizedException if the credentials are invalid
      */
     public LoginResponse login(LoginRequest request) throws UnauthorizedException, BadRequestException {
-        if (!userDAO.verifyUser(request.username(), request.password())) {
-            throw new UnauthorizedException("invalid login credentials");
+        try {
+            if (!userDAO.verifyUser(request.username(), request.password())) {
+                throw new UnauthorizedException("invalid login credentials");
+            }
+        } catch (DataAccessException e) {
+            throw new BadRequestException("null credential(s)");
         }
         // convert DataAccessException -> BadRequestException
         try {

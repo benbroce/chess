@@ -15,6 +15,9 @@ public class MemoryUserDAO implements UserDAO {
 
     @Override
     public void createUser(UserData user) throws DataAccessException {
+        if (user == null) {
+            throw new DataAccessException("null user");
+        }
         if (this.getUser(user.username()) != null) {
             throw new DataAccessException("username already taken");
         }
@@ -22,7 +25,10 @@ public class MemoryUserDAO implements UserDAO {
     }
 
     @Override
-    public UserData getUser(String username) {
+    public UserData getUser(String username) throws DataAccessException {
+        if (username == null) {
+            throw new DataAccessException("null username");
+        }
         for (UserData user : this.userTable) {
             if (user.username().equals(username)) {
                 return user;
@@ -32,7 +38,10 @@ public class MemoryUserDAO implements UserDAO {
     }
 
     @Override
-    public boolean verifyUser(String username, String password) {
+    public boolean verifyUser(String username, String password) throws DataAccessException {
+        if ((username == null) || (password == null)) {
+            throw new DataAccessException("null credentials");
+        }
         for (UserData user : this.userTable) {
             if (user.username().equals(username) && user.password().equals(password)) {
                 return true;

@@ -38,7 +38,7 @@ class UserServiceTests {
 
     @Test
     // successful registration
-    public void registerTestPositive() {
+    public void registerTestPositive() throws DataAccessException {
         // confirm pre-state
         assertNull(userDAO.getUser("testUser"));
         // perform register
@@ -57,7 +57,7 @@ class UserServiceTests {
 
     @Test
     // registration failure (username already taken)
-    public void registerTestNegative() {
+    public void registerTestNegative() throws DataAccessException {
         // set pre-state
         try {
             userDAO.createUser(new UserData("testUser", "testPass", "testEmail"));
@@ -101,7 +101,7 @@ class UserServiceTests {
     }
 
     @Test
-    public void loginTestNegative() {
+    public void loginTestNegative() throws DataAccessException {
         // set pre-state
         try {
             userDAO.createUser(new UserData("testUser", "testPass", "testEmail"));
