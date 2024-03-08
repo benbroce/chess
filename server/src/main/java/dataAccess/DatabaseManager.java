@@ -92,9 +92,10 @@ public class DatabaseManager {
                          connection.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)) {
                 for (int i = 0; i < params.length; ++i) {
                     switch (params[i]) {
+                        case null -> preparedStatement.setNull((i + 1), NULL);
                         case String p -> preparedStatement.setString((i + 1), p);
                         case Integer p -> preparedStatement.setInt((i + 1), p);
-                        default -> preparedStatement.setNull((i + 1), NULL);
+                        default -> throw new DataAccessException("invalid database input type");
                     }
                 }
                 preparedStatement.executeUpdate();

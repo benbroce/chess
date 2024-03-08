@@ -18,7 +18,7 @@ public class DatabaseGameDAO implements GameDAO {
                     `whiteUsername` VARCHAR(255) DEFAULT NULL,
                     `blackUsername` VARCHAR(255) DEFAULT NULL,
                     `gameName` VARCHAR(255) NOT NULL,
-                    `game` TEXT DEFAULT NULL,
+                    `game` TEXT NOT NULL,
                     PRIMARY KEY (`gameID`)
                 )""");
     }
