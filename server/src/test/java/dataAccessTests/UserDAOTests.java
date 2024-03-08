@@ -2,8 +2,8 @@ package dataAccessTests;
 
 import dataAccess.DataAccessException;
 import dataAccess.UserDAO;
-import dataAccess.memoryDAO.MemoryUserDAO;
 import dataAccess.databaseDAO.DatabaseUserDAO;
+import dataAccess.memoryDAO.MemoryUserDAO;
 import model.UserData;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -16,8 +16,8 @@ class UserDAOTests {
     /**
      * @return a Stream of UserDAO objects of different implementations for testing
      */
-    private static Stream<UserDAO> userDAOImplementationsUnderTest() {
-        return Stream.of((new MemoryUserDAO())/*, (new DatabaseUserDAO())*/);
+    private static Stream<UserDAO> userDAOImplementationsUnderTest() throws DataAccessException {
+        return Stream.of((new MemoryUserDAO()), (new DatabaseUserDAO()));
     }
 
     @ParameterizedTest
@@ -26,12 +26,12 @@ class UserDAOTests {
         // set pre-state
         userDAO.clearUsers();
         // confirm pre-state
-        assertNull(userDAO.getUser("testUser"));
+        assertNull(userDAO.getEmail("testUser"));
         // perform action
         UserData testUser = new UserData("testUser", "testPass", "testEmail");
         userDAO.createUser(testUser);
         // compare post-state
-        assertEquals(userDAO.getUser("testUser"), testUser);
+        assertTrue(userDAO.verifyUser("testUser", "testPass"));
         userDAO.clearUsers();
     }
 
@@ -43,7 +43,7 @@ class UserDAOTests {
         UserData initialUser = new UserData("testUser", "testPass", "testEmail");
         userDAO.createUser(initialUser);
         // confirm pre-state
-        assertEquals(userDAO.getUser("testUser"), initialUser);
+        assertTrue(userDAO.verifyUser("testUser", "testPass"));
         // perform action, compare post-state
         UserData testUser = new UserData("testUser", "diffPass", "diffEmail");
         assertThrows(DataAccessException.class, (() -> userDAO.createUser(testUser)));
@@ -58,7 +58,7 @@ class UserDAOTests {
         UserData testUser = new UserData("testUser", "testPass", "testEmail");
         userDAO.createUser(testUser);
         // perform action, compare post-state
-        assertEquals(userDAO.getUser("testUser"), testUser);
+        assertTrue(userDAO.verifyUser("testUser", "testPass"));
         userDAO.clearUsers();
     }
 
@@ -70,7 +70,7 @@ class UserDAOTests {
         UserData testUser = new UserData("testUser", "testPass", "testEmail");
         userDAO.createUser(testUser);
         // perform action, compare post-state
-        assertNull(userDAO.getUser("otherUser"));
+        assertFalse(userDAO.verifyUser("otherUser", "testPass"));
         userDAO.clearUsers();
     }
 
@@ -82,7 +82,7 @@ class UserDAOTests {
         UserData testUser = new UserData("testUser", "testPass", "testEmail");
         userDAO.createUser(testUser);
         // confirm pre-state
-        assertEquals(userDAO.getUser("testUser"), testUser);
+        assertEquals(userDAO.getEmail("testUser"), testUser.email());
         // perform action, compare post-state
         assertTrue(userDAO.verifyUser("testUser", "testPass"));
         userDAO.clearUsers();
@@ -96,7 +96,7 @@ class UserDAOTests {
         UserData testUser = new UserData("testUser", "testPass", "testEmail");
         userDAO.createUser(testUser);
         // confirm pre-state
-        assertEquals(userDAO.getUser("testUser"), testUser);
+        assertEquals(userDAO.getEmail("testUser"), testUser.email());
         // perform action, compare post-state
         assertFalse(userDAO.verifyUser("testUser", "badPass"));
         userDAO.clearUsers();

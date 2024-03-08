@@ -12,13 +12,13 @@ public interface UserDAO {
     void createUser(UserData user) throws DataAccessException;
 
     /**
-     * Get the user with the given username, or null if the user does not exist
+     * Get the email of the user with the given username, or null if the user does not exist
      *
      * @param username the username to search for
-     * @return the UserData object for the user
+     * @return the email of the user
      * @throws DataAccessException if the username is null
      */
-    UserData getUser(String username) throws DataAccessException;
+    String getEmail(String username) throws DataAccessException;
 
     /**
      * @param username the username to search
@@ -31,5 +31,5 @@ public interface UserDAO {
     /**
      * Delete all users
      */
-    void clearUsers();
+    void clearUsers() throws DataAccessException;
 }

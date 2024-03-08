@@ -18,20 +18,20 @@ public class MemoryUserDAO implements UserDAO {
         if (user == null) {
             throw new DataAccessException("null user");
         }
-        if (this.getUser(user.username()) != null) {
+        if (this.getEmail(user.username()) != null) {
             throw new DataAccessException("username already taken");
         }
         this.userTable.add(user);
     }
 
     @Override
-    public UserData getUser(String username) throws DataAccessException {
+    public String getEmail(String username) throws DataAccessException {
         if (username == null) {
             throw new DataAccessException("null username");
         }
         for (UserData user : this.userTable) {
             if (user.username().equals(username)) {
-                return user;
+                return user.email();
             }
         }
         return null;

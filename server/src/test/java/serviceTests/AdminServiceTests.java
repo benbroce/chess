@@ -45,13 +45,13 @@ class AdminServiceTests {
         assertTrue(authDAO.verifyAuthToken(preAuthToken));
         assertNotNull(gameDAO.getGame(preGameID));
         assertNotEquals(gameDAO.listGames(), (new ArrayList<>()));
-        assertNotNull(userDAO.getUser("testUser"));
+        assertNotNull(userDAO.getEmail("testUser"));
         // perform clear
         adminService.clearApp();
         // compare post-state
         assertFalse(authDAO.verifyAuthToken(preAuthToken));
         assertNull(gameDAO.getGame(preGameID));
         assertEquals(gameDAO.listGames(), (new ArrayList<>()));
-        assertNull(userDAO.getUser("testUser"));
+        assertNull(userDAO.getEmail("testUser"));
     }
 }

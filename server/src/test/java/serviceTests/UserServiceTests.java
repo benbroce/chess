@@ -40,7 +40,7 @@ class UserServiceTests {
     // successful registration
     public void registerTestPositive() throws DataAccessException {
         // confirm pre-state
-        assertNull(userDAO.getUser("testUser"));
+        assertNull(userDAO.getEmail("testUser"));
         // perform register
         try {
             assertNotNull(userService.register(
@@ -51,8 +51,7 @@ class UserServiceTests {
             fail("Username or password missing");
         }
         // compare post-state
-        assertEquals(userDAO.getUser("testUser"),
-                (new UserData("testUser", "testPass", "testEmail")));
+        assertTrue(userDAO.verifyUser("testUser", "testPass"));
     }
 
     @Test
@@ -65,15 +64,13 @@ class UserServiceTests {
             fail("Could not create initial user");
         }
         // confirm pre-state (initial user is present in database)
-        assertEquals(userDAO.getUser("testUser"),
-                (new UserData("testUser", "testPass", "testEmail")));
+        assertTrue(userDAO.verifyUser("testUser", "testPass"));
         // perform register, compare post-state
         // (failed registration due to duplicate username, ensure original user kept)
         assertThrows(AlreadyTakenException.class,
                 (() -> userService.register(
                         new RegisterRequest("testUser", "diffPass", "diffEmail"))));
-        assertEquals(userDAO.getUser("testUser"),
-                (new UserData("testUser", "testPass", "testEmail")));
+        assertTrue(userDAO.verifyUser("testUser", "testPass"));
     }
 
     @Test
@@ -85,8 +82,7 @@ class UserServiceTests {
             fail("Could not create initial user");
         }
         // confirm pre-state (user is present in database)
-        assertEquals(userDAO.getUser("testUser"),
-                (new UserData("testUser", "testPass", "testEmail")));
+        assertTrue(userDAO.verifyUser("testUser", "testPass"));
         // perform login
         String authToken = null;
         try {
@@ -109,8 +105,7 @@ class UserServiceTests {
             fail("Could not create initial user");
         }
         // confirm pre-state (user is present in database)
-        assertEquals(userDAO.getUser("testUser"),
-                (new UserData("testUser", "testPass", "testEmail")));
+        assertTrue(userDAO.verifyUser("testUser", "testPass"));
         // perform invalid login, compare post-state (throws a credentialing error)
         assertThrows(UnauthorizedException.class,
                 (() -> userService.login(new LoginRequest("testUser", "wrongPass"))));
@@ -127,8 +122,7 @@ class UserServiceTests {
             fail("Could not create initial user");
         }
         // confirm pre-state (user, auth are present in database)
-        assertEquals(userDAO.getUser("testUser"),
-                (new UserData("testUser", "testPass", "testEmail")));
+        assertTrue(userDAO.verifyUser("testUser", "testPass"));
         assertNotNull(authDAO.getUsername(authToken));
         // perform logout
         try {
@@ -153,8 +147,7 @@ class UserServiceTests {
             fail("Could not create initial user");
         }
         // confirm pre-state (user, auth are present in database)
-        assertEquals(userDAO.getUser("testUser"),
-                (new UserData("testUser", "testPass", "testEmail")));
+        assertTrue(userDAO.verifyUser("testUser", "testPass"));
         assertEquals(authDAO.getUsername(authToken), "testUser");
         // perform invalid logout
         assertThrows(UnauthorizedException.class, (() -> userService.logout("wrongAuthToken")));
