@@ -18,12 +18,12 @@ public interface GameDAO {
      * @param gameID the ID of the game to search for
      * @return the GameData object, or null if gameID matches no games
      */
-    GameData getGame(int gameID);
+    GameData getGame(int gameID) throws DataAccessException;
 
     /**
      * @return a list of every game on the server
      */
-    ArrayList<GameData> listGames();
+    ArrayList<GameData> listGames() throws DataAccessException;
 
     /**
      * Update the game with the given gameID
@@ -40,5 +40,5 @@ public interface GameDAO {
     /**
      * Delete all games
      */
-    void clearGames();
+    void clearGames() throws DataAccessException;
 }

@@ -36,7 +36,7 @@ class GameDAOTests {
 
     @ParameterizedTest
     @MethodSource("gameDAOImplementationsUnderTest")
-    public void createGameNegative(GameDAO gameDAO) {
+    public void createGameNegative(GameDAO gameDAO) throws DataAccessException {
         // set pre-state
         gameDAO.clearGames();
         // confirm pre-state
@@ -92,7 +92,7 @@ class GameDAOTests {
 
     @ParameterizedTest
     @MethodSource("gameDAOImplementationsUnderTest")
-    public void listGamesNegative(GameDAO gameDAO) {
+    public void listGamesNegative(GameDAO gameDAO) throws DataAccessException {
         // set pre-state
         gameDAO.clearGames();
         // perform action, compare post-state

@@ -96,7 +96,8 @@ public class Server {
         return "";
     }
 
-    private Object listGames(Request req, Response res) throws UnauthorizedException, BadRequestException {
+    private Object listGames(Request req, Response res)
+            throws UnauthorizedException, BadRequestException, ServerErrorException {
         String authToken = req.headers("Authorization");
         ListGamesResponse responseBody = this.gameService.listGames(authToken);
         res.type("application/json");
@@ -114,7 +115,7 @@ public class Server {
     }
 
     private Object joinGame(Request req, Response res)
-            throws UnauthorizedException, BadRequestException, AlreadyTakenException {
+            throws UnauthorizedException, BadRequestException, AlreadyTakenException, ServerErrorException {
         String authToken = req.headers("Authorization");
         JoinGameRequest requestBody = (new Gson()).fromJson(req.body(), JoinGameRequest.class);
         this.gameService.joinGame(authToken, requestBody);

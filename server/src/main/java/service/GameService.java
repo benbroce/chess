@@ -11,6 +11,7 @@ import model.response.CreateGameResponse;
 import model.response.ListGamesResponse;
 import service.serviceExceptions.AlreadyTakenException;
 import service.serviceExceptions.BadRequestException;
+import service.serviceExceptions.ServerErrorException;
 import service.serviceExceptions.UnauthorizedException;
 
 public class GameService {
@@ -33,7 +34,8 @@ public class GameService {
      * @throws BadRequestException   if the authToken is null
      * @throws UnauthorizedException if the authToken is invalid
      */
-    public ListGamesResponse listGames(String authToken) throws UnauthorizedException, BadRequestException {
+    public ListGamesResponse listGames(String authToken)
+            throws UnauthorizedException, BadRequestException, ServerErrorException {
         try {
             if (!authDAO.verifyAuthToken(authToken)) {
                 throw new UnauthorizedException("bad auth token");
@@ -41,7 +43,11 @@ public class GameService {
         } catch (DataAccessException e) {
             throw new BadRequestException("null auth token");
         }
-        return new ListGamesResponse(gameDAO.listGames());
+        try {
+            return new ListGamesResponse(gameDAO.listGames());
+        } catch (DataAccessException e) {
+            throw new ServerErrorException("database connection failed");
+        }
     }
 
     /**
@@ -79,7 +85,7 @@ public class GameService {
      * @throws AlreadyTakenException if the requested team position is already claimed
      */
     public void joinGame(String authToken, JoinGameRequest request)
-            throws BadRequestException, UnauthorizedException, AlreadyTakenException {
+            throws BadRequestException, UnauthorizedException, AlreadyTakenException, ServerErrorException {
         try {
             if (!authDAO.verifyAuthToken(authToken)) {
                 throw new UnauthorizedException("bad auth token");
@@ -87,7 +93,13 @@ public class GameService {
         } catch (DataAccessException e) {
             throw new BadRequestException("null auth token");
         }
-        GameData gameData = gameDAO.getGame(request.gameID());
+
+        GameData gameData;
+        try {
+            gameData = gameDAO.getGame(request.gameID());
+        } catch (DataAccessException e) {
+            throw new ServerErrorException("Database access error");
+        }
         if (gameData == null) {
             throw new BadRequestException("requested game does not exist");
         }

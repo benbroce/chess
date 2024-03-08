@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import service.GameService;
 import service.serviceExceptions.AlreadyTakenException;
 import service.serviceExceptions.BadRequestException;
+import service.serviceExceptions.ServerErrorException;
 import service.serviceExceptions.UnauthorizedException;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ class GameServiceTests {
     }
 
     @Test
-    public void listGamesTestPositive() throws BadRequestException, UnauthorizedException, DataAccessException {
+    public void listGamesTestPositive() throws BadRequestException, UnauthorizedException, DataAccessException, ServerErrorException {
         // set pre-state
         int gameID0 = gameDAO.createGame("game0");
         int gameID1 = gameDAO.createGame("game1");
@@ -144,6 +145,8 @@ class GameServiceTests {
             fail("unauthorized");
         } catch (AlreadyTakenException e) {
             fail("position already taken");
+        } catch (ServerErrorException e) {
+            fail("database connection failed");
         }
         // compare post-state
         assertEquals(gameDAO.getGame(gameID).whiteUsername(), "testUser");
@@ -183,6 +186,8 @@ class GameServiceTests {
             fail("opponent unauthorized");
         } catch (AlreadyTakenException e) {
             fail("opponent position already taken");
+        } catch (ServerErrorException e) {
+            fail("database connection failed");
         }
         String finalAuthToken1 = authToken;
         assertThrows(AlreadyTakenException.class,
