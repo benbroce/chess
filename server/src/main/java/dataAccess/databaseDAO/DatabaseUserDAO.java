@@ -4,6 +4,7 @@ import dataAccess.DataAccessException;
 import dataAccess.DatabaseManager;
 import dataAccess.UserDAO;
 import model.UserData;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.NoSuchElementException;
 
@@ -28,7 +29,9 @@ public class DatabaseUserDAO implements UserDAO {
         }
         DatabaseManager.executeUpdate(
                 "INSERT INTO user (username, password, email) VALUES (?, ?, ?)",
-                user.username(), user.password(), user.email());
+                user.username(),
+                (new BCryptPasswordEncoder()).encode(user.password()),
+                user.email());
     }
 
     @Override
@@ -51,10 +54,17 @@ public class DatabaseUserDAO implements UserDAO {
         if ((username == null) || (password == null)) {
             throw new DataAccessException("null credentials");
         }
-        return !(DatabaseManager.executeQuery(
-                (new String[]{"username"}),
-                "SELECT username, password, email FROM user WHERE username=? AND password=?",
-                username, password).isEmpty());
+        String hashedPassword;
+        try {
+            Object[] userLine = DatabaseManager.executeQuery(
+                    (new String[]{"password"}),
+                    "SELECT username, password, email FROM user WHERE username=?",
+                    username).getFirst();
+            hashedPassword = (String) userLine[0];
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+        return (new BCryptPasswordEncoder()).matches(password, hashedPassword);
     }
 
     @Override

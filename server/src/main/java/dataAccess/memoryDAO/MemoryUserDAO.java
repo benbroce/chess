@@ -3,6 +3,7 @@ package dataAccess.memoryDAO;
 import dataAccess.DataAccessException;
 import dataAccess.UserDAO;
 import model.UserData;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.HashSet;
 
@@ -21,6 +22,9 @@ public class MemoryUserDAO implements UserDAO {
         if (this.getEmail(user.username()) != null) {
             throw new DataAccessException("username already taken");
         }
+        user = new UserData(user.username(),
+                (new BCryptPasswordEncoder().encode(user.password())),
+                user.email());
         this.userTable.add(user);
     }
 
@@ -43,7 +47,8 @@ public class MemoryUserDAO implements UserDAO {
             throw new DataAccessException("null credentials");
         }
         for (UserData user : this.userTable) {
-            if (user.username().equals(username) && user.password().equals(password)) {
+            if (user.username().equals(username)
+                    && (new BCryptPasswordEncoder()).matches(password, user.password())) {
                 return true;
             }
         }
