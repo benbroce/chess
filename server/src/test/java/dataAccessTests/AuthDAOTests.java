@@ -2,6 +2,7 @@ package dataAccessTests;
 
 import dataAccess.AuthDAO;
 import dataAccess.DataAccessException;
+import dataAccess.DatabaseManager;
 import dataAccess.databaseDAO.DatabaseAuthDAO;
 import dataAccess.memoryDAO.MemoryAuthDAO;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,15 +16,24 @@ class AuthDAOTests {
     /**
      * @return a Stream of AuthDAO objects of different implementations for testing
      */
-    private static Stream<AuthDAO> authDAOImplementationsUnderTest() {
-        return Stream.of((new MemoryAuthDAO())/*, (new DatabaseAuthDAO())*/);
+    private static Stream<AuthDAO> authDAOImplementationsUnderTest() throws DataAccessException {
+        return Stream.of((new MemoryAuthDAO()), (new DatabaseAuthDAO()));
+    }
+
+    private static void setup(AuthDAO authDAO) throws DataAccessException {
+        DatabaseManager.createDatabase();
+        authDAO.clearAuths();
+    }
+
+    private static void tearDown(AuthDAO authDAO) throws DataAccessException {
+        authDAO.clearAuths();
     }
 
     @ParameterizedTest
     @MethodSource("authDAOImplementationsUnderTest")
     public void createAuthPositive(AuthDAO authDAO) throws DataAccessException {
         // set pre-state
-        authDAO.clearAuths();
+        setup(authDAO);
         // perform action
         String authToken = "";
         try {
@@ -33,24 +43,24 @@ class AuthDAOTests {
         }
         // compare post-state
         assertEquals(authDAO.getUsername(authToken), "testUser");
-        authDAO.clearAuths();
+        tearDown(authDAO);
     }
 
     @ParameterizedTest
     @MethodSource("authDAOImplementationsUnderTest")
-    public void createAuthNegative(AuthDAO authDAO) {
+    public void createAuthNegative(AuthDAO authDAO) throws DataAccessException {
         // set pre-state
-        authDAO.clearAuths();
+        setup(authDAO);
         // perform action, compare post-state
         assertThrows(DataAccessException.class, (() -> authDAO.createAuth("")));
-        authDAO.clearAuths();
+        tearDown(authDAO);
     }
 
     @ParameterizedTest
     @MethodSource("authDAOImplementationsUnderTest")
     public void deleteAuthPositive(AuthDAO authDAO) throws DataAccessException {
         // set pre-state
-        authDAO.clearAuths();
+        setup(authDAO);
         String authToken = "";
         try {
             authToken = authDAO.createAuth("testUser");
@@ -67,73 +77,73 @@ class AuthDAOTests {
         }
         // compare post-state
         assertNull(authDAO.getUsername(authToken));
-        authDAO.clearAuths();
+        tearDown(authDAO);
     }
 
     @ParameterizedTest
     @MethodSource("authDAOImplementationsUnderTest")
-    public void deleteAuthNegative(AuthDAO authDAO) {
+    public void deleteAuthNegative(AuthDAO authDAO) throws DataAccessException {
         // set pre-state
-        authDAO.clearAuths();
+        setup(authDAO);
         // perform action
         assertThrows(DataAccessException.class, (() -> authDAO.deleteAuth(null)));
         // compare post-state
-        authDAO.clearAuths();
+        tearDown(authDAO);
     }
 
     @ParameterizedTest
     @MethodSource("authDAOImplementationsUnderTest")
     public void verifyAuthTokenPositive(AuthDAO authDAO) throws DataAccessException {
         // set pre-state
-        authDAO.clearAuths();
+        setup(authDAO);
         String authToken = authDAO.createAuth("testUser");
         // confirm pre-state
         assertEquals(authDAO.getUsername(authToken), "testUser");
         // perform action, compare post-state
         assertTrue(authDAO.verifyAuthToken(authToken));
-        authDAO.clearAuths();
+        tearDown(authDAO);
     }
 
     @ParameterizedTest
     @MethodSource("authDAOImplementationsUnderTest")
     public void verifyAuthTokenNegative(AuthDAO authDAO) throws DataAccessException {
         // set pre-state
-        authDAO.clearAuths();
+        setup(authDAO);
         String authToken = authDAO.createAuth("testUser");
         // confirm pre-state
         assertEquals(authDAO.getUsername(authToken), "testUser");
         // perform action, compare post-state
         assertFalse(authDAO.verifyAuthToken("wrong" + authToken));
-        authDAO.clearAuths();
+        tearDown(authDAO);
     }
 
     @ParameterizedTest
     @MethodSource("authDAOImplementationsUnderTest")
     public void getUsernamePositive(AuthDAO authDAO) throws DataAccessException {
         // set pre-state
-        authDAO.clearAuths();
+        setup(authDAO);
         String authToken = authDAO.createAuth("testUser");
         // perform action, compare post-state
         assertEquals(authDAO.getUsername(authToken), "testUser");
-        authDAO.clearAuths();
+        tearDown(authDAO);
     }
 
     @ParameterizedTest
     @MethodSource("authDAOImplementationsUnderTest")
     public void getUsernameNegative(AuthDAO authDAO) throws DataAccessException {
         // set pre-state
-        authDAO.clearAuths();
+        setup(authDAO);
         String authToken = authDAO.createAuth("testUser");
         // perform action, compare post-state
         assertNotEquals(authDAO.getUsername("wrong" + authToken), "testUser");
-        authDAO.clearAuths();
+        tearDown(authDAO);
     }
 
     @ParameterizedTest
     @MethodSource("authDAOImplementationsUnderTest")
     public void ClearAuthsPositive(AuthDAO authDAO) throws DataAccessException {
         // set pre-state
-        authDAO.clearAuths();
+        setup(authDAO);
         String authToken0 = authDAO.createAuth("testUser0");
         String authToken1 = authDAO.createAuth("testUser1");
         String authToken2 = authDAO.createAuth("testUser2");
@@ -147,6 +157,6 @@ class AuthDAOTests {
         assertNull(authDAO.getUsername(authToken0));
         assertNull(authDAO.getUsername(authToken1));
         assertNull(authDAO.getUsername(authToken2));
-        authDAO.clearAuths();
+        tearDown(authDAO);
     }
 }

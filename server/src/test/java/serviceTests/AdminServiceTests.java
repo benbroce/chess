@@ -9,6 +9,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.AdminService;
+import service.serviceExceptions.ServerErrorException;
 
 import java.util.ArrayList;
 
@@ -21,7 +22,7 @@ class AdminServiceTests {
     private UserDAO userDAO;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws ServerErrorException {
         authDAO = new MemoryAuthDAO();
         gameDAO = new MemoryGameDAO();
         userDAO = new MemoryUserDAO();
@@ -30,12 +31,12 @@ class AdminServiceTests {
     }
 
     @AfterEach
-    public void tearDown() {
+    public void tearDown() throws ServerErrorException {
         adminService.clearApp();
     }
 
     @Test
-    public void clearAppTestPositive() throws DataAccessException {
+    public void clearAppTestPositive() throws DataAccessException, ServerErrorException {
         // set pre-state
         String preAuthToken = authDAO.createAuth("testAuth");
         int preGameID = gameDAO.createGame("testGame");
