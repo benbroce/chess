@@ -24,7 +24,7 @@ class GameServiceTests {
     private GameDAO gameDAO;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws DataAccessException {
         authDAO = new MemoryAuthDAO();
         gameDAO = new MemoryGameDAO();
         gameService = new GameService(authDAO, gameDAO);
@@ -33,7 +33,7 @@ class GameServiceTests {
     }
 
     @AfterEach
-    public void tearDown() {
+    public void tearDown() throws DataAccessException {
         authDAO.clearAuths();
         gameDAO.clearGames();
     }

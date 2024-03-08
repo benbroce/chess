@@ -15,6 +15,7 @@ import service.GameService;
 import service.UserService;
 import service.serviceExceptions.AlreadyTakenException;
 import service.serviceExceptions.BadRequestException;
+import service.serviceExceptions.ServerErrorException;
 import service.serviceExceptions.UnauthorizedException;
 import spark.*;
 
@@ -53,6 +54,7 @@ public class Server {
         Spark.exception(AlreadyTakenException.class, this::alreadyTakenHandler);
         Spark.exception(BadRequestException.class, this::badRequestHandler);
         Spark.exception(UnauthorizedException.class, this::unauthorizedHandler);
+        Spark.exception(ServerErrorException.class, this::serverErrorHandler);
 
         Spark.awaitInitialization();
         return Spark.port();
@@ -65,7 +67,7 @@ public class Server {
 
     // Endpoint Handlers
 
-    private Object clearApp(Request req, Response res) {
+    private Object clearApp(Request req, Response res) throws ServerErrorException {
         this.adminService.clearApp();
         res.status(200);
         return "";
@@ -140,6 +142,13 @@ public class Server {
         String body = (new Gson()).toJson(new FailureResponse("Error: unauthorized"));
         res.type("application/json");
         res.status(401);
+        res.body(body);
+    }
+
+    public void serverErrorHandler(ServerErrorException e, Request req, Response res) {
+        String body = (new Gson()).toJson(new FailureResponse("Error: server failed"));
+        res.type("application/json");
+        res.status(500);
         res.body(body);
     }
 }

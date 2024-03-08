@@ -1,8 +1,10 @@
 package service;
 
 import dataAccess.AuthDAO;
+import dataAccess.DataAccessException;
 import dataAccess.GameDAO;
 import dataAccess.UserDAO;
+import service.serviceExceptions.ServerErrorException;
 
 public class AdminService {
     private final AuthDAO authDAO;
@@ -21,9 +23,13 @@ public class AdminService {
     /**
      * Clear the entire chess app database
      */
-    public void clearApp() {
-        authDAO.clearAuths();
-        gameDAO.clearGames();
-        userDAO.clearUsers();
+    public void clearApp() throws ServerErrorException {
+        try {
+            authDAO.clearAuths();
+            gameDAO.clearGames();
+            userDAO.clearUsers();
+        } catch (DataAccessException e) {
+            throw new ServerErrorException("Data Access Error");
+        }
     }
 }

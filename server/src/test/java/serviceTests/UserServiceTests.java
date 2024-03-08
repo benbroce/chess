@@ -22,7 +22,7 @@ class UserServiceTests {
     private UserDAO userDAO;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws DataAccessException {
         authDAO = new MemoryAuthDAO();
         userDAO = new MemoryUserDAO();
         userService = new UserService(authDAO, userDAO);
@@ -31,7 +31,7 @@ class UserServiceTests {
     }
 
     @AfterEach
-    public void tearDown() {
+    public void tearDown() throws DataAccessException {
         authDAO.clearAuths();
         userDAO.clearUsers();
     }

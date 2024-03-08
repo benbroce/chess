@@ -36,5 +36,5 @@ public interface AuthDAO {
     /**
      * Delete all authentications
      */
-    void clearAuths();
+    void clearAuths() throws DataAccessException;
 }
