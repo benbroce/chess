@@ -2,9 +2,9 @@ package server;
 
 import com.google.gson.Gson;
 import dataAccess.*;
-import dataAccess.memoryDAO.MemoryAuthDAO;
-import dataAccess.memoryDAO.MemoryGameDAO;
-import dataAccess.memoryDAO.MemoryUserDAO;
+import dataAccess.databaseDAO.DatabaseAuthDAO;
+import dataAccess.databaseDAO.DatabaseGameDAO;
+import dataAccess.databaseDAO.DatabaseUserDAO;
 import model.request.CreateGameRequest;
 import model.response.*;
 import model.request.JoinGameRequest;
@@ -26,14 +26,21 @@ public class Server {
     private final GameService gameService;
 
     public Server() {
-        // initialize DAO (Data Access Object) instances
-        AuthDAO authDAO = new MemoryAuthDAO();
-        GameDAO gameDAO = new MemoryGameDAO();
-        UserDAO userDAO = new MemoryUserDAO();
-        // initialize service instances
-        this.adminService = new AdminService(authDAO, gameDAO, userDAO);
-        this.userService = new UserService(authDAO, userDAO);
-        this.gameService = new GameService(authDAO, gameDAO);
+        try {
+            // create the database if it doesn't already exist
+            DatabaseManager.createDatabase();
+            // initialize DAO (Data Access Object) instances
+            AuthDAO authDAO = new DatabaseAuthDAO();
+            GameDAO gameDAO = new DatabaseGameDAO();
+            UserDAO userDAO = new DatabaseUserDAO();
+            // initialize service instances
+            this.adminService = new AdminService(authDAO, gameDAO, userDAO);
+            this.userService = new UserService(authDAO, userDAO);
+            this.gameService = new GameService(authDAO, gameDAO);
+        } catch (DataAccessException e) {
+            // TODO: more graceful server failure?
+            throw new RuntimeException("Error: could not connect to database");
+        }
     }
 
     public int run(int desiredPort) {
