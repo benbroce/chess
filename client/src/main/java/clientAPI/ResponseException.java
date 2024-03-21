@@ -1,3 +1,5 @@
+package clientAPI;
+
 /**
  * Indicates the server encountered an error in responding to the given request
  */

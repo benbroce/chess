@@ -1,3 +1,5 @@
+package clientAPI;
+
 import com.google.gson.Gson;
 import model.GameData;
 import model.request.CreateGameRequest;
@@ -34,7 +36,7 @@ public class ServerFacade {
     // Admin Methods //////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Clear the app of all data
+     * Clear the app of all data (Warning: do not expose to user)
      *
      * @throws ResponseException if the request fails
      */
