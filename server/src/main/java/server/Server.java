@@ -133,28 +133,28 @@ public class Server {
     // Exception Handlers
 
     public void alreadyTakenHandler(AlreadyTakenException e, Request req, Response res) {
-        String body = (new Gson()).toJson(new FailureResponse("Error: already taken"));
+        String body = (new Gson()).toJson(new FailureResponse("Error: Already Taken - " + e.getMessage()));
         res.type("application/json");
         res.status(403);
         res.body(body);
     }
 
     public void badRequestHandler(BadRequestException e, Request req, Response res) {
-        String body = (new Gson()).toJson(new FailureResponse("Error: bad request"));
+        String body = (new Gson()).toJson(new FailureResponse("Error: Bad Request - " + e.getMessage()));
         res.type("application/json");
         res.status(400);
         res.body(body);
     }
 
     public void unauthorizedHandler(UnauthorizedException e, Request req, Response res) {
-        String body = (new Gson()).toJson(new FailureResponse("Error: unauthorized"));
+        String body = (new Gson()).toJson(new FailureResponse("Error: Unauthorized - " + e.getMessage()));
         res.type("application/json");
         res.status(401);
         res.body(body);
     }
 
     public void serverErrorHandler(ServerErrorException e, Request req, Response res) {
-        String body = (new Gson()).toJson(new FailureResponse("Error: server failed"));
+        String body = (new Gson()).toJson(new FailureResponse("Error: Server Failed - " + e.getMessage()));
         res.type("application/json");
         res.status(500);
         res.body(body);

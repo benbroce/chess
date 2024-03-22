@@ -6,10 +6,7 @@ import model.request.CreateGameRequest;
 import model.request.JoinGameRequest;
 import model.request.LoginRequest;
 import model.request.RegisterRequest;
-import model.response.CreateGameResponse;
-import model.response.ListGamesResponse;
-import model.response.LoginResponse;
-import model.response.RegisterResponse;
+import model.response.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,10 +26,6 @@ public class ServerFacade {
         this.authToken = null;
     }
 
-    public boolean isLoggedIn() {
-        return (authToken != null);
-    }
-
     // Admin Methods //////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -46,6 +39,13 @@ public class ServerFacade {
     }
 
     // User Methods ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @return Whether the current ServerFacade client session is logged in
+     */
+    public boolean isLoggedIn() {
+        return (authToken != null);
+    }
 
     /**
      * Register a new user
@@ -164,9 +164,12 @@ public class ServerFacade {
             ServerFacade.writeRequestBody((authenticate ? this.authToken : null), requestBody, http);
             // establish an HTTP network connection (allowing request stream to be read by server)
             http.connect();
-            // if the response status is not 2XX, the request failed, throw an exception
-            if ((http.getResponseCode() / 100) != 2) {
-                throw new Exception(String.format("Error %d: %s", http.getResponseCode(), http.getResponseMessage()));
+            // on request failure, throw an exception
+            if (!ServerFacade.requestSuccessful(http)) {
+                throw new Exception(String.format("\n%s\n[Status %d: %s]",
+                        ServerFacade.readResponseBody(http, FailureResponse.class).message(),
+                        http.getResponseCode(),
+                        http.getResponseMessage()));
             }
             // read the server response and return
             return ServerFacade.readResponseBody(http, responseClass);
@@ -196,22 +199,31 @@ public class ServerFacade {
     }
 
     /**
-     * Read an HTTP response body from the input stream of an HTTP connection object
+     * Read an HTTP response body from the input (or error) stream of an HTTP connection object
      *
      * @param http          the HTTP connection object
      * @param responseClass the Class type of the expected response
      * @param <T>           a generic for response type (defined by passing in responseClass)
      * @return the server response (of type responseClass), or null if there is none
-     * @throws IOException if the HTTP input stream cannot be read from
+     * @throws IOException if the HTTP input (or error) stream cannot be read from
      */
     private static <T> T readResponseBody(HttpURLConnection http, Class<T> responseClass) throws IOException {
         T response = null;
-        try (InputStream responseBody = http.getInputStream()) {
+        try (InputStream responseBody = (requestSuccessful(http) ? http.getInputStream() : http.getErrorStream())) {
             InputStreamReader reader = new InputStreamReader(responseBody);
             if (responseClass != null) {
                 response = new Gson().fromJson(reader, responseClass);
             }
         }
         return response;
+    }
+
+    /**
+     * @param http the HTTP connection object to test
+     * @return whether the connection's last request was successful (status 2XX)
+     * @throws IOException if the HTTP object has no response code
+     */
+    private static boolean requestSuccessful(HttpURLConnection http) throws IOException {
+        return (http.getResponseCode() / 100) == 2;
     }
 }
