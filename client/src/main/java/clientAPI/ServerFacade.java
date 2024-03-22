@@ -145,6 +145,7 @@ public class ServerFacade {
      * @param path          the path to the requested resource on the server
      * @param requestBody   the request body
      * @param responseClass the Class type of the expected response
+     * @param authenticate  whether to authenticate the request with the session authToken
      * @param <T>           a generic for response type (defined by passing in responseClass)
      * @return the server response (of type responseClass)
      * @throws ResponseException if the request fails
@@ -161,7 +162,7 @@ public class ServerFacade {
             http.setRequestMethod(requestMethod);
             http.setDoOutput(true);
             // write the request body to the outgoing stream of the HTTP connection object
-            ServerFacade.writeRequestBody((authenticate ? this.authToken : null), requestBody, http);
+            ServerFacade.writeRequest((authenticate ? this.authToken : null), requestBody, http);
             // establish an HTTP network connection (allowing request stream to be read by server)
             http.connect();
             // on request failure, throw an exception
@@ -181,17 +182,18 @@ public class ServerFacade {
     /**
      * Write an HTTP request body to the output stream of an HTTP connection object
      *
-     * @param request the request body object
-     * @param http    the HTTP connection object
+     * @param authToken   an authorization token, or null if not applicable
+     * @param requestBody the request body object
+     * @param http        the HTTP connection object
      * @throws IOException if the HTTP output stream cannot be written to
      */
-    private static void writeRequestBody(String authToken, Object request, HttpURLConnection http) throws IOException {
-        if (request != null) {
-            if (authToken != null) {
-                http.addRequestProperty("Authorization", authToken);
-            }
+    private static void writeRequest(String authToken, Object requestBody, HttpURLConnection http) throws IOException {
+        if (authToken != null) {
+            http.addRequestProperty("Authorization", authToken);
+        }
+        if (requestBody != null) {
             http.addRequestProperty("Content-Type", "application/json");
-            String reqData = new Gson().toJson(request);
+            String reqData = new Gson().toJson(requestBody);
             try (OutputStream reqBody = http.getOutputStream()) {
                 reqBody.write(reqData.getBytes());
             }
