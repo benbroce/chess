@@ -1,11 +1,15 @@
 package ui;
 
+import chess.ChessGame;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import clientAPI.ResponseException;
 import clientAPI.ServerFacade;
-import com.google.gson.Gson;
 import model.GameData;
 
+import static chess.ChessBoard.BOARD_SIDE_LENGTH;
 import static ui.ColorScheme.*;
+import static ui.EscapeSequences.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -114,12 +118,12 @@ public class Client {
         assertLoggedIn();
         ArrayList<GameData> games = this.serverFacade.listGames();
         StringBuilder result = new StringBuilder();
-        Gson gson = new Gson();
         this.gameNumberToGameID.clear();
-        int gameNumber = 0;
+        int gameNumber = 1;
         for (GameData game : games) {
             this.gameNumberToGameID.put(gameNumber, game.gameID());
-            result.append(gameNumber).append(": ").append(gson.toJson(game)).append("\n");
+            result.append(gameNumber).append(":\n").append(
+                    getGameFancyString(game, false)).append("\n");
             gameNumber++;
         }
         return result.toString();
@@ -139,7 +143,7 @@ public class Client {
             this.serverFacade.joinGame(null, this.gameNumberToGameID.get(gameNumber));
             result.append("Observing Game ").append(gameNumber).append(".");
         }
-        result.append("\n\n").append(getGameFancyString(gameNumber));
+        result.append("\n\n").append(getGameFancyString(getGame(gameNumber), true));
         return result.toString();
     }
 
@@ -162,16 +166,71 @@ public class Client {
         throw new ResponseException("No such game.");
     }
 
-    private String getGameFancyString(int gameNumber) throws ResponseException {
-        GameData game = getGame(gameNumber);
+    private String getGameFancyString(GameData game, boolean includeFlippedBoard) {
         StringBuilder output = new StringBuilder();
+        // game name
         output.append(SET_GAME_NAME_COLOR).append("~~ ").append(game.gameName()).append(" ~~\n");
+        // player roles
         output.append(SET_WHITE_USERNAME_COLOR).append("White: ").append(game.whiteUsername());
         output.append(SET_RESULT_COLOR).append("\t");
         output.append(SET_BLACK_USERNAME_COLOR).append("Black: ").append(game.blackUsername());
         output.append(SET_RESULT_COLOR).append("\n");
-        output.append(game.game().getBoard().toString());
-        //output.append(game.game().getBoard().getPiece())
+        String gridLetterRow;
+        // game (black at bottom) if requested
+        if (includeFlippedBoard) {
+            gridLetterRow = String.join(GRID_LETTER_SPACE, "h", "g", "f", "e", "d", "c", "b", "a");
+            output.append(EMPTY).append(gridLetterRow).append("\n");
+            for (int row = 1; row <= BOARD_SIDE_LENGTH; ++row) {
+                output.append(row).append(" ");
+                for (int col = BOARD_SIDE_LENGTH; col >= 1; --col) {
+                    output.append(getSquareFancyString(game, row, col));
+                }
+                output.append(SET_RESULT_COLOR).append(" ").append(row).append("\n");
+            }
+            output.append(EMPTY).append(gridLetterRow).append("\n");
+        }
+        // game (white at bottom)
+        gridLetterRow = String.join(GRID_LETTER_SPACE, "a", "b", "c", "d", "e", "f", "g", "h");
+        output.append(EMPTY).append(gridLetterRow).append("\n");
+        for (int row = BOARD_SIDE_LENGTH; row >= 1; --row) {
+            output.append(row).append(" ");
+            for (int col = 1; col <= BOARD_SIDE_LENGTH; ++col) {
+                output.append(getSquareFancyString(game, row, col));
+            }
+            output.append(SET_RESULT_COLOR).append(" ").append(row).append("\n");
+        }
+        output.append(EMPTY).append(gridLetterRow).append("\n");
+        // return the result
+        return output.toString();
+    }
+
+    private String getSquareFancyString(GameData game, int row, int col) {
+        ChessPiece square = game.game().getBoard().getPiece(new ChessPosition(row, col));
+        StringBuilder output = new StringBuilder();
+        // grid background: dark if row and column match parity, light otherwise
+        if (((row % 2) == 0) == ((col % 2) == 0)) {
+            output.append(SET_GRID_DARK_COLOR);
+        } else {
+            output.append(SET_GRID_LIGHT_COLOR);
+        }
+        // determine character for piece
+        if (square == null) {
+            output.append(EMPTY);
+        } else {
+            // set color for piece
+            output.append((square.getTeamColor() == ChessGame.TeamColor.WHITE)
+                    ? SET_WHITE_PIECE_COLOR
+                    : SET_BLACK_PIECE_COLOR);
+            // get the matching character
+            output.append(switch (square.getPieceType()) {
+                case KING -> BLACK_KING;
+                case QUEEN -> BLACK_QUEEN;
+                case BISHOP -> BLACK_BISHOP;
+                case KNIGHT -> BLACK_KNIGHT;
+                case ROOK -> BLACK_ROOK;
+                case PAWN -> BLACK_PAWN;
+            });
+        }
         return output.toString();
     }
 }
