@@ -119,7 +119,7 @@ public class Client {
         ArrayList<GameData> games = this.serverFacade.listGames();
         StringBuilder result = new StringBuilder();
         this.gameNumberToGameID.clear();
-        int gameNumber = 1;
+        int gameNumber = 0;
         for (GameData game : games) {
             this.gameNumberToGameID.put(gameNumber, game.gameID());
             result.append(gameNumber).append(":\n").append(
@@ -166,7 +166,7 @@ public class Client {
         throw new ResponseException("No such game.");
     }
 
-    private String getGameFancyString(GameData game, boolean includeFlippedBoard) {
+    private String getGameFancyString(GameData game, boolean includeBoards) {
         StringBuilder output = new StringBuilder();
         // game name
         output.append(SET_GAME_NAME_COLOR).append("~~ ").append(game.gameName()).append(" ~~\n");
@@ -177,7 +177,7 @@ public class Client {
         output.append(SET_RESULT_COLOR).append("\n");
         String gridLetterRow;
         // game (black at bottom) if requested
-        if (includeFlippedBoard) {
+        if (includeBoards) {
             gridLetterRow = String.join(GRID_LETTER_SPACE, "h", "g", "f", "e", "d", "c", "b", "a");
             output.append(EMPTY).append(gridLetterRow).append("\n");
             for (int row = 1; row <= BOARD_SIDE_LENGTH; ++row) {
@@ -188,18 +188,18 @@ public class Client {
                 output.append(SET_RESULT_COLOR).append(" ").append(row).append("\n");
             }
             output.append(EMPTY).append(gridLetterRow).append("\n");
-        }
-        // game (white at bottom)
-        gridLetterRow = String.join(GRID_LETTER_SPACE, "a", "b", "c", "d", "e", "f", "g", "h");
-        output.append(EMPTY).append(gridLetterRow).append("\n");
-        for (int row = BOARD_SIDE_LENGTH; row >= 1; --row) {
-            output.append(row).append(" ");
-            for (int col = 1; col <= BOARD_SIDE_LENGTH; ++col) {
-                output.append(getSquareFancyString(game, row, col));
+            // game (white at bottom)
+            gridLetterRow = String.join(GRID_LETTER_SPACE, "a", "b", "c", "d", "e", "f", "g", "h");
+            output.append(EMPTY).append(gridLetterRow).append("\n");
+            for (int row = BOARD_SIDE_LENGTH; row >= 1; --row) {
+                output.append(row).append(" ");
+                for (int col = 1; col <= BOARD_SIDE_LENGTH; ++col) {
+                    output.append(getSquareFancyString(game, row, col));
+                }
+                output.append(SET_RESULT_COLOR).append(" ").append(row).append("\n");
             }
-            output.append(SET_RESULT_COLOR).append(" ").append(row).append("\n");
+            output.append(EMPTY).append(gridLetterRow).append("\n");
         }
-        output.append(EMPTY).append(gridLetterRow).append("\n");
         // return the result
         return output.toString();
     }
