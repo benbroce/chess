@@ -106,7 +106,7 @@ public class GameService {
         if ((request.playerColor() == null) || request.playerColor().isEmpty()) {
             return; // observation mode
         }
-        ChessGame.TeamColor playerColor = (request.playerColor().equals("WHITE"))
+        ChessGame.TeamColor playerColor = (request.playerColor().equalsIgnoreCase("WHITE"))
                 ? ChessGame.TeamColor.WHITE
                 : ChessGame.TeamColor.BLACK;
         if (((playerColor == ChessGame.TeamColor.WHITE)
