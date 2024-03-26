@@ -74,7 +74,7 @@ public class Client {
         return ("\t" + SET_HELP_OPTION_COLOR + action + SET_HELP_DESCRIPTOR_COLOR + " - " + description + "\n");
     }
 
-    // pre-login UI
+    // Pre-login UI ///////////////////////////////////////////////////////////////////////////////
 
     private String register(String... params) throws ResponseException {
         if (params.length != 3) {
@@ -92,7 +92,7 @@ public class Client {
         return "Logged In.";
     }
 
-    // post-login UI
+    // Post-login UI //////////////////////////////////////////////////////////////////////////////
 
     private String logout() throws ResponseException {
         assertLoggedIn();
@@ -139,7 +139,7 @@ public class Client {
             this.serverFacade.joinGame(null, this.gameNumberToGameID.get(gameNumber));
             result.append("Observing Game ").append(gameNumber).append(".");
         }
-        result.append("\n\n").append(getGame(gameNumber).game().getBoard());
+        result.append("\n\n").append(getGameFancyString(gameNumber));
         return result.toString();
     }
 
@@ -151,12 +151,27 @@ public class Client {
         return this.joinGame(params[0]);
     }
 
-    private GameData getGame(Integer gameNumber) throws ResponseException {
+    // Gameplay UI ////////////////////////////////////////////////////////////////////////////////
+
+    private GameData getGame(int gameNumber) throws ResponseException {
         for (GameData game : this.serverFacade.listGames()) {
             if (game.gameID() == this.gameNumberToGameID.get(gameNumber)) {
                 return game;
             }
         }
         throw new ResponseException("No such game.");
+    }
+
+    private String getGameFancyString(int gameNumber) throws ResponseException {
+        GameData game = getGame(gameNumber);
+        StringBuilder output = new StringBuilder();
+        output.append(SET_GAME_NAME_COLOR).append("~~ ").append(game.gameName()).append(" ~~\n");
+        output.append(SET_WHITE_USERNAME_COLOR).append("White: ").append(game.whiteUsername());
+        output.append(SET_RESULT_COLOR).append("\t");
+        output.append(SET_BLACK_USERNAME_COLOR).append("Black: ").append(game.blackUsername());
+        output.append(SET_RESULT_COLOR).append("\n");
+        output.append(game.game().getBoard().toString());
+        //output.append(game.game().getBoard().getPiece())
+        return output.toString();
     }
 }

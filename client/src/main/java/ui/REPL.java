@@ -12,6 +12,7 @@ public class REPL {
     }
 
     public void run() {
+        System.out.print(SET_PROMPT_COLOR);
         System.out.println("\uD83D\uDC51 Welcome to 240 chess. Type Help to get started. \uD83D\uDC51");
         System.out.print(client.help());
 
@@ -31,7 +32,8 @@ public class REPL {
     }
 
     private void printPrompt() {
-        System.out.print("\n"
-                + SET_PROMPT_COLOR + "[LOGGED_" + (client.isLoggedIn() ? "IN" : "OUT") + "] >>> " + SET_USER_INPUT_COLOR);
+        System.out.print("\n" + SET_PROMPT_COLOR
+                + "[LOGGED_" + (client.isLoggedIn() ? "IN" : "OUT") + "] >>> "
+                + SET_USER_INPUT_COLOR);
     }
 }
