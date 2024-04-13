@@ -1,6 +1,7 @@
 package service;
 
 import chess.ChessGame;
+import chess.InvalidMoveException;
 import dataAccess.AuthDAO;
 import dataAccess.DataAccessException;
 import dataAccess.GameDAO;
@@ -13,6 +14,7 @@ import service.serviceExceptions.AlreadyTakenException;
 import service.serviceExceptions.BadRequestException;
 import service.serviceExceptions.ServerErrorException;
 import service.serviceExceptions.UnauthorizedException;
+import webSocketMessages.userCommands.*;
 
 public class GameService {
     private final AuthDAO authDAO;
@@ -26,6 +28,8 @@ public class GameService {
         this.gameDAO = gameDAO;
     }
 
+    // HTTP Service Request Methods ///////////////////////////////////////////////////////////////
+
     /**
      * Return a list of all the games in the database with their metadata
      *
@@ -36,15 +40,9 @@ public class GameService {
      */
     public ListGamesResponse listGames(String authToken)
             throws UnauthorizedException, BadRequestException, ServerErrorException {
+        this.assertAuthTokenVerified(authToken);
         try {
-            if (!authDAO.verifyAuthToken(authToken)) {
-                throw new UnauthorizedException("bad auth token");
-            }
-        } catch (DataAccessException e) {
-            throw new BadRequestException("null auth token");
-        }
-        try {
-            return new ListGamesResponse(gameDAO.listGames());
+            return new ListGamesResponse(this.gameDAO.listGames());
         } catch (DataAccessException e) {
             throw new ServerErrorException("database connection failed");
         }
@@ -61,15 +59,9 @@ public class GameService {
      */
     public CreateGameResponse createGame(String authToken, CreateGameRequest request)
             throws UnauthorizedException, BadRequestException {
+        this.assertAuthTokenVerified(authToken);
         try {
-            if (!authDAO.verifyAuthToken(authToken)) {
-                throw new UnauthorizedException("bad auth token");
-            }
-        } catch (DataAccessException e) {
-            throw new BadRequestException("null auth token");
-        }
-        try {
-            return new CreateGameResponse(gameDAO.createGame(request.gameName()));
+            return new CreateGameResponse(this.gameDAO.createGame(request.gameName()));
         } catch (DataAccessException e) {
             throw new BadRequestException("null gameName");
         }
@@ -86,17 +78,10 @@ public class GameService {
      */
     public void joinGame(String authToken, JoinGameRequest request)
             throws BadRequestException, UnauthorizedException, AlreadyTakenException, ServerErrorException {
-        try {
-            if (!authDAO.verifyAuthToken(authToken)) {
-                throw new UnauthorizedException("bad auth token");
-            }
-        } catch (DataAccessException e) {
-            throw new BadRequestException("null auth token");
-        }
-
+        this.assertAuthTokenVerified(authToken);
         GameData gameData;
         try {
-            gameData = gameDAO.getGame(request.gameID());
+            gameData = this.gameDAO.getGame(request.gameID());
         } catch (DataAccessException e) {
             throw new ServerErrorException("Database access error");
         }
@@ -115,7 +100,7 @@ public class GameService {
         }
         String playerUsername;
         try {
-            playerUsername = authDAO.getUsername(authToken);
+            playerUsername = this.authDAO.getUsername(authToken);
         } catch (DataAccessException e) {
             throw new BadRequestException("null authToken");
         }
@@ -125,9 +110,94 @@ public class GameService {
                 gameData.gameID(), newWhiteUsername, newBlackUsername, gameData.gameName(), gameData.game());
         // convert any DataAccessException -> BadRequestException
         try {
-            gameDAO.updateGame(request.gameID(), gameData);
+            this.gameDAO.updateGame(request.gameID(), gameData);
         } catch (DataAccessException e) {
             throw new BadRequestException("game does not exist");
         }
+    }
+
+    // Websocket Client Command Methods
+
+    public void joinPlayer(JoinPlayerCommand command) throws UnauthorizedException, BadRequestException {
+        this.assertAuthTokenVerified(command.getAuthString());
+        // TODO: Return GameData from all websocket methods (or make a getGame() method)
+        // return this.gameDAO.getGame(command.getGameID());
+    }
+
+    public void joinObserver(JoinObserverCommand command) throws UnauthorizedException, BadRequestException {
+        this.assertAuthTokenVerified(command.getAuthString());
+    }
+
+    //
+    public void makeMove(MakeMoveCommand command)
+            throws UnauthorizedException, BadRequestException, ServerErrorException {
+        this.assertAuthTokenVerified(command.getAuthString());
+        try {
+            GameData gameData = this.getExistingGame(command.getGameID());
+            // attempt the requested move (throw exception on invalid move)
+            gameData.game().makeMove(command.getMove());
+            // reinsert the post-move game to DAO
+            this.gameDAO.updateGame(gameData.gameID(), gameData);
+        } catch (DataAccessException e) {
+            throw new ServerErrorException("could not communicate with database");
+        } catch (InvalidMoveException e) {
+            throw new BadRequestException("Invalid Move. " + e.getMessage());
+        }
+    }
+
+    public void leaveGame(LeaveCommand command)
+            throws UnauthorizedException, BadRequestException, ServerErrorException {
+        this.assertAuthTokenVerified(command.getAuthString());
+        try {
+            GameData gameData = this.getExistingGame(command.getGameID());
+            // remove the root client from the game
+            String rootClientUsername = this.authDAO.getUsername(command.getAuthString());
+            if (gameData.whiteUsername().equals(rootClientUsername)) {
+                gameData = new GameData(gameData.gameID(),
+                        null, gameData.blackUsername(), gameData.gameName(), gameData.game());
+            } else if (gameData.blackUsername().equals(rootClientUsername)) {
+                gameData = new GameData(gameData.gameID(), gameData.whiteUsername(),
+                        null, gameData.gameName(), gameData.game());
+            } else {
+                throw new BadRequestException("not a player in the specified game");
+            }
+            this.gameDAO.updateGame(gameData.gameID(), gameData);
+        } catch (DataAccessException e) {
+            throw new ServerErrorException("database error: " + e.getMessage());
+        }
+    }
+
+    public void resignGame(ResignCommand command)
+            throws UnauthorizedException, BadRequestException, ServerErrorException {
+        this.assertAuthTokenVerified(command.getAuthString());
+        try {
+            GameData gameData = this.getExistingGame(command.getGameID());
+            // set the game to over
+            gameData.game().setOver();
+            // reinsert the game to DAO
+            this.gameDAO.updateGame(gameData.gameID(), gameData);
+        } catch (DataAccessException e) {
+            throw new ServerErrorException("could not communicate with database");
+        }
+    }
+
+    private void assertAuthTokenVerified(String authToken) throws UnauthorizedException, BadRequestException {
+        try {
+            if (!this.authDAO.verifyAuthToken(authToken)) {
+                throw new UnauthorizedException("bad auth token");
+            }
+        } catch (DataAccessException e) {
+            throw new BadRequestException("null auth token");
+        }
+    }
+
+    private GameData getExistingGame(int gameID) throws DataAccessException, BadRequestException {
+        // fetch game data from DAO by ID
+        GameData gameData = this.gameDAO.getGame(gameID);
+        // assert that the game data exists
+        if ((gameData == null) || (gameData.game() == null)) {
+            throw new BadRequestException("game does not exist");
+        }
+        return gameData;
     }
 }
