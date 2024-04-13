@@ -14,12 +14,14 @@ public class ChessGame {
     private ChessBoard board;
     private TeamColor teamTurn;
     private final ChessMovesLog movesLog;
+    private boolean isOver;
 
     public ChessGame() {
         this.teamTurn = TeamColor.WHITE;
         this.board = new ChessBoard();
         this.board.resetBoard();
         this.movesLog = new ChessMovesLog();
+        this.isOver = false;
     }
 
     /**
@@ -65,6 +67,14 @@ public class ChessGame {
         this.movesLog.reset();
     }
 
+    public boolean isOver() {
+        return this.isOver;
+    }
+
+    public void setOver() {
+        this.isOver = true;
+    }
+
     // MOVES //////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -95,6 +105,10 @@ public class ChessGame {
         this.movesLog.addMove(new ChessMovesLog.Entry(move, piece));
         // change the teamTurn
         this.teamTurn = (this.teamTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+        // set game over under stalemate or checkmate
+        if (this.isInStalemate(this.teamTurn) || this.isInCheckmate(this.teamTurn)) {
+            this.isOver = true;
+        }
     }
 
     /**
