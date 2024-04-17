@@ -11,6 +11,7 @@ import java.util.Objects;
 public class ChessPosition {
     private final int row;
     private final int col;
+    private final String[] columnLetters = {null, "a", "b", "c", "d", "e", "f", "g", "h"};
 
     public ChessPosition(int row, int col) {
         this.row = row;
@@ -40,7 +41,7 @@ public class ChessPosition {
 
     @Override
     public String toString() {
-        return String.format("(%d, %d)", row, col);
+        return String.format("(%s, %d)", columnLetters[col], row);
     }
 
     @Override
