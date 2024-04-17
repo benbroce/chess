@@ -115,9 +115,9 @@ public class WebSocketHandler {
         this.loadGameForRootClient(command.getGameID(), command.getAuthString());
         // broadcast a join notification to all clients except root
         this.broadcastMessage(command.getGameID(),
-                this.packNotificationMessage("join "
-                        + this.authDAO.getUsername(command.getAuthString())
-                        + ((command.getPlayerColor() == ChessGame.TeamColor.WHITE) ? " white" : " black")),
+                this.packNotificationMessage(this.authDAO.getUsername(command.getAuthString())
+                        + " joined as "
+                        + ((command.getPlayerColor() == ChessGame.TeamColor.WHITE) ? "white" : "black")),
                 command.getAuthString());
     }
 
@@ -133,9 +133,8 @@ public class WebSocketHandler {
         this.loadGameForRootClient(command.getGameID(), command.getAuthString());
         // broadcast a join notification to all clients except root
         this.broadcastMessage(command.getGameID(),
-                this.packNotificationMessage("join "
-                        + this.authDAO.getUsername(command.getAuthString())
-                        + " observer"),
+                this.packNotificationMessage(this.authDAO.getUsername(command.getAuthString())
+                        + " joined as observer"),
                 command.getAuthString());
     }
 
@@ -152,25 +151,27 @@ public class WebSocketHandler {
                 null);
         // broadcast a move notification to all clients except root
         this.broadcastMessage(command.getGameID(),
-                this.packNotificationMessage("move " + command.getMove().toString()),
+                this.packNotificationMessage(this.authDAO.getUsername(command.getAuthString())
+                        + " moved "
+                        + command.getMove().toString()),
                 command.getAuthString());
         // on check, checkmate, or stalemate, notify all clients
         ChessGame gameState = gameData.game();
         if (gameState.isInCheckmate(gameState.getTeamTurn())) {
             this.broadcastMessage(command.getGameID(),
-                    this.packNotificationMessage("checkmate " + getCurrentTurnUsername(gameData)),
+                    this.packNotificationMessage(getCurrentTurnUsername(gameData) + " was checkmated"),
                     null);
         } else if (gameState.isInStalemate(gameState.getTeamTurn())) {
             this.broadcastMessage(command.getGameID(),
-                    this.packNotificationMessage("stalemate " + getCurrentTurnUsername(gameData)),
+                    this.packNotificationMessage("Stalemate"),
                     null);
         } else if (gameState.isInCheck(gameState.getTeamTurn())) {
             this.broadcastMessage(command.getGameID(),
-                    this.packNotificationMessage("check " + getCurrentTurnUsername(gameData)),
+                    this.packNotificationMessage(getCurrentTurnUsername(gameData) + " is in check"),
                     null);
         }
     }
-    
+
     private String getCurrentTurnUsername(GameData gameState) {
         return (gameState.game().getTeamTurn() == ChessGame.TeamColor.WHITE)
                 ? gameState.whiteUsername() : gameState.blackUsername();
@@ -184,7 +185,7 @@ public class WebSocketHandler {
         this.gameService.leaveGame(command);
         // broadcast a leave notification to all clients except root
         this.broadcastMessage(command.getGameID(),
-                this.packNotificationMessage("leave " + this.authDAO.getUsername(command.getAuthString())),
+                this.packNotificationMessage(this.authDAO.getUsername(command.getAuthString()) + " left the game"),
                 command.getAuthString());
         // remove the user session from this game in the SessionManager
         this.sessionManager.removeSessionFromGame(command.getGameID(), command.getAuthString());
@@ -198,7 +199,7 @@ public class WebSocketHandler {
         this.gameService.resignGame(command);
         // broadcast a resignation notification to all clients
         this.broadcastMessage(command.getGameID(),
-                this.packNotificationMessage("resign " + this.authDAO.getUsername(command.getAuthString())),
+                this.packNotificationMessage(this.authDAO.getUsername(command.getAuthString()) + " resigned"),
                 command.getAuthString());
     }
 
