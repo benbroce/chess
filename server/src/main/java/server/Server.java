@@ -10,6 +10,7 @@ import model.response.*;
 import model.request.JoinGameRequest;
 import model.request.LoginRequest;
 import model.request.RegisterRequest;
+import server.websocket.WebSocketHandler;
 import service.AdminService;
 import service.GameService;
 import service.UserService;
@@ -24,6 +25,7 @@ public class Server {
     private final AdminService adminService;
     private final UserService userService;
     private final GameService gameService;
+    private final WebSocketHandler webSocketHandler;
 
     public Server() {
         try {
@@ -37,6 +39,8 @@ public class Server {
             this.adminService = new AdminService(authDAO, gameDAO, userDAO);
             this.userService = new UserService(authDAO, userDAO);
             this.gameService = new GameService(authDAO, gameDAO);
+            // initialize websocket handler
+            this.webSocketHandler = new WebSocketHandler(this.gameService, authDAO);
         } catch (DataAccessException e) {
             // TODO: more graceful server failure?
             throw new RuntimeException("Error: could not connect to database");
@@ -49,6 +53,7 @@ public class Server {
         Spark.staticFiles.location("web");
 
         // endpoint registration
+        Spark.webSocket("/connect", this.webSocketHandler);
         Spark.delete("/db", this::clearApp);
         Spark.post("/user", this::register);
         Spark.post("/session", this::login);
