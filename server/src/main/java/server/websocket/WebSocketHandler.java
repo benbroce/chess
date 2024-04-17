@@ -31,19 +31,42 @@ public class WebSocketHandler {
         this.authDAO = authDAO;
     }
 
+    /**
+     * When a websocket session closes, remove it from the SessionManager
+     *
+     * @param session the session to remove
+     */
     @OnWebSocketClose
     public void onClose(Session session) {
         sessionManager.removeSession(session);
     }
 
+    /**
+     * Send a message to the client by client info
+     *
+     * @param gameID    the ID of the game context to send to
+     * @param authToken the authToken of the client
+     * @param message   the message to send (pack as a type)
+     * @throws IOException on send error
+     */
     private void sendMessage(int gameID, String authToken, String message) throws IOException {
         sessionManager.getSessionsForGame(gameID).get(authToken).getRemote().sendString(message);
     }
 
+    /**
+     * Send a message to the client by session (only use for errors)
+     *
+     * @param session the session to send a message to
+     * @param message the message to send (pack as a type)
+     * @throws IOException on send error
+     */
     private void sendMessage(Session session, String message) throws IOException {
         session.getRemote().sendString(message);
     }
 
+    /**
+     * Send a message to multiple clients (can exclude one by authToken)
+     */
     private void broadcastMessage(int gameID, String message, String excludeAuthToken) throws IOException {
         // run through all <authToken, session> pairs associated with the given game
         for (Map.Entry<String, Session> sessionEntry : sessionManager.getSessionsForGame(gameID).entrySet()) {
@@ -55,7 +78,15 @@ public class WebSocketHandler {
         }
     }
 
-    // Incoming Commands //////////////////////////////////////////////////////////////////////////
+    // Incoming Commands //////////////////////////////////////////////////////////////////////////\
+
+    /**
+     * When a websocket message is received from a client, direct it to the correct method
+     *
+     * @param session the session the message was received on
+     * @param message the message received (unpack from a type)
+     * @throws IOException on failure to send an error message
+     */
     @OnWebSocketMessage
     public void onMessage(Session session, String message) throws IOException {
         UserGameCommand command = (new Gson()).fromJson(message, UserGameCommand.class);
@@ -139,7 +170,7 @@ public class WebSocketHandler {
                     null);
         }
     }
-
+    
     private String getCurrentTurnUsername(GameData gameState) {
         return (gameState.game().getTeamTurn() == ChessGame.TeamColor.WHITE)
                 ? gameState.whiteUsername() : gameState.blackUsername();
