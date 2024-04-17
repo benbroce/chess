@@ -78,7 +78,7 @@ public class ChessGame {
     // MOVES //////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Makes a move in a chess game
+     * Makes a move in a chess game, change the team turn
      *
      * @param move chess move to perform
      * @throws InvalidMoveException if move is invalid
@@ -86,6 +86,9 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         Collection<ChessMove> legalMoves = this.validMoves(move.getStartPosition());
         // if move is illegal, throw an exception
+        if (this.isOver()) {
+            throw new InvalidMoveException("Cannot Move, Game is Over");
+        }
         if (legalMoves == null) {
             throw new InvalidMoveException(
                     String.format("Attempted Move: %s Moves a nonexistent piece.", move));
