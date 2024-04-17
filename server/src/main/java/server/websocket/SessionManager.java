@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 public class SessionManager {
-    // Map<gameID, Map<authToken, session>> (each game has several sessions, each linked to an authToken)
+    // Map<gameID, Map<authToken, session>> (each game has several client sessions, each linked to an authToken)
     private final ConcurrentHashMap<Integer, ConcurrentHashMap<String, Session>> sessionMap;
 
     public SessionManager() {
@@ -20,9 +20,9 @@ public class SessionManager {
         this.sessionMap.get(gameID).put(authToken, session);
     }
 
-    public void removeSessionFromGame(int gameID, String authToken, Session session) {
+    public void removeSessionFromGame(int gameID, String authToken) {
         Session sessionToRemove = sessionMap.get(gameID).remove(authToken);
-        sessionToRemove.close(); // TODO: Is this ok to be here?
+        sessionToRemove.close();
     }
 
     public void removeSession(Session session) {

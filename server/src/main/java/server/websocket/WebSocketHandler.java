@@ -31,19 +31,9 @@ public class WebSocketHandler {
         this.authDAO = authDAO;
     }
 
-    @OnWebSocketConnect
-    public void onConnect(Session session) {
-
-    }
-
     @OnWebSocketClose
     public void onClose(Session session) {
         sessionManager.removeSession(session);
-    }
-
-    @OnWebSocketError
-    public void onError(Throwable throwable) {
-
     }
 
     private void sendMessage(int gameID, String authToken, String message) throws IOException {
@@ -68,11 +58,11 @@ public class WebSocketHandler {
     // Incoming Commands //////////////////////////////////////////////////////////////////////////
     @OnWebSocketMessage
     public void onMessage(Session session, String message) throws IOException {
-        UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
+        UserGameCommand command = (new Gson()).fromJson(message, UserGameCommand.class);
         try {
             switch (command.getCommandType()) {
-                case JOIN_PLAYER -> this.joinPlayer(message);
-                case JOIN_OBSERVER -> this.joinObserver(message);
+                case JOIN_PLAYER -> this.joinPlayer(message, session);
+                case JOIN_OBSERVER -> this.joinObserver(message, session);
                 case MAKE_MOVE -> this.makeMove(message);
                 case LEAVE -> this.leaveGame(message);
                 case RESIGN -> this.resignGame(message);
@@ -82,10 +72,12 @@ public class WebSocketHandler {
         }
     }
 
-    private void joinPlayer(String message)
+    private void joinPlayer(String message, Session session)
             throws UnauthorizedException, BadRequestException, DataAccessException, IOException {
         // decode JSON command
         JoinPlayerCommand command = (new Gson()).fromJson(message, JoinPlayerCommand.class);
+        // add the player session to this game in the SessionManager
+        this.sessionManager.addSessionToGame(command.getGameID(), command.getAuthString(), session);
         // run the gameService method on the command
         gameService.joinPlayer(command);
         // send the game state to the root client
@@ -98,10 +90,12 @@ public class WebSocketHandler {
                 command.getAuthString());
     }
 
-    private void joinObserver(String message)
+    private void joinObserver(String message, Session session)
             throws UnauthorizedException, BadRequestException, DataAccessException, IOException {
         // decode JSON command
         JoinObserverCommand command = (new Gson()).fromJson(message, JoinObserverCommand.class);
+        // add the observer session to this game in the SessionManager
+        this.sessionManager.addSessionToGame(command.getGameID(), command.getAuthString(), session);
         // run the gameService method on the command
         gameService.joinObserver(command);
         // send the game state to the root client
@@ -161,6 +155,8 @@ public class WebSocketHandler {
         this.broadcastMessage(command.getGameID(),
                 this.packNotificationMessage("leave " + this.authDAO.getUsername(command.getAuthString())),
                 command.getAuthString());
+        // remove the user session from this game in the SessionManager
+        this.sessionManager.removeSessionFromGame(command.getGameID(), command.getAuthString());
     }
 
     private void resignGame(String message)
