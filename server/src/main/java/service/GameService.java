@@ -118,22 +118,40 @@ public class GameService {
 
     // Websocket Client Command Methods
 
+    /**
+     * Run the websocket/DAO portion of the process to join a player to a game
+     *
+     * @param command the JoinPlayerCommand to process
+     * @throws UnauthorizedException on bad auth token
+     * @throws BadRequestException   on null auth token
+     */
     public void joinPlayer(JoinPlayerCommand command) throws UnauthorizedException, BadRequestException {
         this.assertAuthTokenVerified(command.getAuthString());
-        // TODO: Return GameData from all websocket methods (or make a getGame() method)
-        // return this.gameDAO.getGame(command.getGameID());
     }
 
+    /**
+     * Run the websocket/DAO portion of the process to join an observer to a game
+     *
+     * @param command the JoinObserverCommand to process
+     * @throws UnauthorizedException on bad auth token
+     * @throws BadRequestException   on null auth token
+     */
     public void joinObserver(JoinObserverCommand command) throws UnauthorizedException, BadRequestException {
         this.assertAuthTokenVerified(command.getAuthString());
     }
 
-    //
+    /**
+     * Make a move for a game in the database
+     *
+     * @param command the move to process
+     * @throws UnauthorizedException on bad auth token
+     * @throws BadRequestException   on null auth token, invalid move
+     */
     public void makeMove(MakeMoveCommand command)
             throws UnauthorizedException, BadRequestException, ServerErrorException {
         this.assertAuthTokenVerified(command.getAuthString());
         try {
-            GameData gameData = this.getExistingGame(command.getGameID());
+            GameData gameData = this.getGame(command.getAuthString(), command.getGameID());
             // attempt the requested move (throw exception on invalid move)
             gameData.game().makeMove(command.getMove());
             // reinsert the post-move game to DAO
@@ -145,11 +163,18 @@ public class GameService {
         }
     }
 
+    /**
+     * Remove a client from a game
+     *
+     * @param command the LeaveCommand to process
+     * @throws UnauthorizedException on bad auth token
+     * @throws BadRequestException   on null auth token
+     */
     public void leaveGame(LeaveCommand command)
             throws UnauthorizedException, BadRequestException, ServerErrorException {
         this.assertAuthTokenVerified(command.getAuthString());
         try {
-            GameData gameData = this.getExistingGame(command.getGameID());
+            GameData gameData = this.getGame(command.getAuthString(), command.getGameID());
             // remove the root client from the game
             String rootClientUsername = this.authDAO.getUsername(command.getAuthString());
             if (gameData.whiteUsername().equals(rootClientUsername)) {
@@ -161,17 +186,25 @@ public class GameService {
             } else {
                 throw new BadRequestException("not a player in the specified game");
             }
+            // reinsert the game to DAO
             this.gameDAO.updateGame(gameData.gameID(), gameData);
         } catch (DataAccessException e) {
             throw new ServerErrorException("database error: " + e.getMessage());
         }
     }
 
+    /**
+     * Set the game to over in response to a resignation
+     *
+     * @param command the JoinPlayerCommand to process
+     * @throws UnauthorizedException on bad auth token
+     * @throws BadRequestException   on null auth token
+     */
     public void resignGame(ResignCommand command)
             throws UnauthorizedException, BadRequestException, ServerErrorException {
         this.assertAuthTokenVerified(command.getAuthString());
         try {
-            GameData gameData = this.getExistingGame(command.getGameID());
+            GameData gameData = this.getGame(command.getAuthString(), command.getGameID());
             // set the game to over
             gameData.game().setOver();
             // reinsert the game to DAO
@@ -181,6 +214,33 @@ public class GameService {
         }
     }
 
+    /**
+     * Get an updated game state from the database
+     *
+     * @param authToken the authToken of the requesting user
+     * @param gameID    the ID of the game to get
+     * @throws DataAccessException   if the game is not in the database
+     * @throws BadRequestException   if game is null or contains a null state, or authToken is null
+     * @throws UnauthorizedException on bad authToken
+     */
+    public GameData getGame(String authToken, int gameID) throws DataAccessException, BadRequestException, UnauthorizedException {
+        assertAuthTokenVerified(authToken);
+        // fetch game data from DAO by ID
+        GameData gameData = this.gameDAO.getGame(gameID);
+        // assert that the game data exists
+        if ((gameData == null) || (gameData.game() == null)) {
+            throw new BadRequestException("game does not exist");
+        }
+        return gameData;
+    }
+
+    /**
+     * Assert that an authToken is authorized and verified
+     *
+     * @param authToken the authToken to assert verified
+     * @throws UnauthorizedException on bad authToken
+     * @throws BadRequestException   on null authToken
+     */
     private void assertAuthTokenVerified(String authToken) throws UnauthorizedException, BadRequestException {
         try {
             if (!this.authDAO.verifyAuthToken(authToken)) {
@@ -189,15 +249,5 @@ public class GameService {
         } catch (DataAccessException e) {
             throw new BadRequestException("null auth token");
         }
-    }
-
-    private GameData getExistingGame(int gameID) throws DataAccessException, BadRequestException {
-        // fetch game data from DAO by ID
-        GameData gameData = this.gameDAO.getGame(gameID);
-        // assert that the game data exists
-        if ((gameData == null) || (gameData.game() == null)) {
-            throw new BadRequestException("game does not exist");
-        }
-        return gameData;
     }
 }
