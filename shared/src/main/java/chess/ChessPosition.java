@@ -11,11 +11,23 @@ import java.util.Objects;
 public class ChessPosition {
     private final int row;
     private final int col;
-    private final String[] columnLetters = {null, "a", "b", "c", "d", "e", "f", "g", "h"};
+    private final char[] columnLetters = {0, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
 
     public ChessPosition(int row, int col) {
         this.row = row;
         this.col = col;
+    }
+
+    public ChessPosition(char col, int row) {
+        int search_col = 0;
+        for (int i = 1; i < this.columnLetters.length; ++i) {
+            if (this.columnLetters[i] == col) {
+                search_col = i;
+                break;
+            }
+        }
+        this.col = search_col;
+        this.row = row;
     }
 
     public ChessPosition(ChessPosition other) {
@@ -41,7 +53,7 @@ public class ChessPosition {
 
     @Override
     public String toString() {
-        return String.format("(%s, %d)", columnLetters[col], row);
+        return String.format("(%c, %d)", this.columnLetters[col], row);
     }
 
     @Override
