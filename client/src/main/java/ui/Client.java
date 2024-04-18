@@ -1,11 +1,17 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import clientAPI.GameHandler;
 import clientAPI.ResponseException;
 import clientAPI.ServerFacade;
+import clientAPI.WebSocketFacade;
 import model.GameData;
+import webSocketMessages.serverMessages.ErrorMessage;
+import webSocketMessages.serverMessages.NotificationMessage;
+import webSocketMessages.serverMessages.ServerMessage;
 
 import static chess.ChessBoard.BOARD_SIDE_LENGTH;
 import static ui.ColorScheme.*;
@@ -15,13 +21,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-public class Client {
+public class Client implements GameHandler {
+    private final String serverURL;
     private final ServerFacade serverFacade;
+    private WebSocketFacade webSocketFacade;
     private final HashMap<Integer, Integer> gameNumberToGameID;
+    private GameData currentGameData;
+    private ChessGame.TeamColor currentPlayerColor;
+
 
     public Client(String serverURL) {
+        this.serverURL = serverURL;
         this.serverFacade = new ServerFacade(serverURL);
+        this.webSocketFacade = null;
         this.gameNumberToGameID = new HashMap<>();
+        this.currentGameData = null;
+        this.currentPlayerColor = null;
     }
 
     public String eval(String input) {
@@ -30,18 +45,37 @@ public class Client {
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
+                // pre-login UI
                 case "register" -> this.register(params);
                 case "login" -> this.login(params);
+                // post-login UI
                 case "logout" -> this.logout();
                 case "create" -> this.createGame(params);
                 case "list" -> this.listGames();
                 case "join" -> this.joinGame(params);
                 case "observe" -> this.observeGame(params);
+                // game UI
+                case "move" -> this.makeMove(params);
+                case "redraw" -> this.drawGame();
+                case "show" -> this.highlightLegalMoves(params);
+                case "resign" -> this.resignGame();
+                case "leave" -> this.leaveGame();
+                // utility
                 case "quit" -> "quit";
                 default -> help();
             };
-        } catch (ResponseException e) {
+        } catch (Exception e) {
             return e.getMessage();
+        }
+    }
+
+    public boolean isInGame() {
+        return (this.webSocketFacade != null);
+    }
+
+    public void assertInGame() throws ResponseException {
+        if (!isInGame()) {
+            throw new ResponseException("Unsupported - Not in a game session");
         }
     }
 
@@ -50,14 +84,21 @@ public class Client {
     }
 
     public void assertLoggedIn() throws ResponseException {
-        if (!isLoggedIn()) {
+        if (!this.isLoggedIn()) {
             throw new ResponseException("Unauthorized - Log in required");
         }
     }
 
     public String help() {
         StringBuilder result = new StringBuilder();
-        if (this.serverFacade.isLoggedIn()) {
+        if (this.isInGame()) {
+            result.append(getHelpEntry("move <PIECE POSITION> <NEW POSITION>", "a piece"));
+            result.append(getHelpEntry("redraw", "chess board"));
+            result.append(getHelpEntry("show <PIECE POSITION>", "legal moves"));
+            result.append(getHelpEntry("resign", "from the game"));
+            result.append(getHelpEntry("leave", "the game session"));
+            result.append(getHelpEntry("help", "with possible commands"));
+        } else if (this.isLoggedIn()) {
             result.append(getHelpEntry("create <NAME>", "a game"));
             result.append(getHelpEntry("list", "games"));
             result.append(getHelpEntry("join <GAME NUMBER> [WHITE|BLACK|<empty>]", "a game"));
@@ -123,13 +164,13 @@ public class Client {
         for (GameData game : games) {
             this.gameNumberToGameID.put(gameNumber, game.gameID());
             result.append(gameNumber).append(":\n").append(
-                    getGameFancyString(game, false)).append("\n");
+                    getGameFancyString(game, false, false)).append("\n");
             gameNumber++;
         }
         return result.toString();
     }
 
-    private String joinGame(String... params) throws ResponseException {
+    private String joinGame(String... params) throws Exception {
         assertLoggedIn();
         if (params.length != 1 && params.length != 2) {
             throw new ResponseException("Expected: <GAME NUMBER> [WHITE|BLACK|<empty>]");
@@ -137,17 +178,37 @@ public class Client {
         int gameNumber = Integer.parseInt(params[0]);
         StringBuilder result = new StringBuilder();
         if (params.length == 2) {
-            this.serverFacade.joinGame(params[1], this.gameNumberToGameID.get(gameNumber));
+            // joining as player
+            int gameID = this.gameNumberToGameID.get(gameNumber);
+            // join game on server via HTTP
+            this.serverFacade.joinGame(params[1], gameID);
+            // create a websocket session for the game
+            this.webSocketFacade = new WebSocketFacade(
+                    this.serverURL, this.serverFacade.getAuthToken(), this, gameID);
+            // join game on websocket session
+            this.currentPlayerColor = (params[1].equalsIgnoreCase("WHITE")
+                    ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
+            this.webSocketFacade.joinPlayer(this.currentPlayerColor);
+            // print status
             result.append("Joined Game ").append(gameNumber).append(" as ").append(params[1]).append(".");
         } else {
-            this.serverFacade.joinGame(null, this.gameNumberToGameID.get(gameNumber));
+            // joining as observer
+            int gameID = this.gameNumberToGameID.get(gameNumber);
+            // join game on server via HTTP
+            this.serverFacade.joinGame(null, gameID);
+            // create a websocket session for the game
+            this.webSocketFacade = new WebSocketFacade(
+                    this.serverURL, this.serverFacade.getAuthToken(), this, gameID);
+            // join game on websocket session
+            this.currentPlayerColor = null;
+            this.webSocketFacade.joinObserver();
+            // print status
             result.append("Observing Game ").append(gameNumber).append(".");
         }
-        result.append("\n\n").append(getGameFancyString(getGame(gameNumber), true));
         return result.toString();
     }
 
-    private String observeGame(String... params) throws ResponseException {
+    private String observeGame(String... params) throws Exception {
         assertLoggedIn();
         if (params.length != 1) {
             throw new ResponseException("Expected: <GAME NUMBER>");
@@ -156,6 +217,86 @@ public class Client {
     }
 
     // Gameplay UI ////////////////////////////////////////////////////////////////////////////////
+
+    // called by WebSocketFacade on message from server
+
+    @Override
+    public void printWebSocketMessage(ServerMessage serverMessage) {
+        String message = switch (serverMessage.getServerMessageType()) {
+            case NOTIFICATION -> ((NotificationMessage) serverMessage).getMessage();
+            case ERROR -> ((ErrorMessage) serverMessage).getErrorMessage();
+            default -> null;
+        };
+        REPL.printMessageAsync(message);
+    }
+
+    @Override
+    public void updateGame(GameData game) {
+        if (this.isInGame()) {
+            this.currentGameData = game;
+            try {
+                REPL.printMessageAsync(this.drawGame());
+            } catch (ResponseException ignored) {
+            }
+        }
+    }
+
+    // gameplay UI methods
+
+    private String drawGame() throws ResponseException {
+        assertInGame();
+        // display the correct board orientation
+        // (black on bottom if black player, white on bottom otherwise)
+        boolean isBlackPlayer = (this.currentPlayerColor == ChessGame.TeamColor.BLACK);
+        return ("\n\n" + this.getGameFancyString(this.currentGameData, !isBlackPlayer, isBlackPlayer));
+    }
+
+    private String highlightLegalMoves(String... params) throws ResponseException {
+        this.assertInGame();
+        if (params.length != 1) {
+            throw new ResponseException("Expected: <PIECE POSITION>");
+        }
+        ChessPosition position = getChessPositionFromString(params[0]);
+        // TODO: highlight the legal moves (local)
+        boolean isBlackPlayer = (this.currentPlayerColor == ChessGame.TeamColor.BLACK);
+        return ("\n\n" + this.getGameFancyString(this.currentGameData, !isBlackPlayer, isBlackPlayer));
+    }
+
+    private String makeMove(String... params) throws Exception {
+        this.assertInGame();
+        if (params.length != 2) {
+            throw new ResponseException("Expected: <PIECE POSITION> <NEW POSITION>");
+        }
+        ChessPosition position = getChessPositionFromString(params[0]);
+        ChessPosition newPosition = getChessPositionFromString(params[1]);
+        this.webSocketFacade.makeMove(new ChessMove(position, newPosition, null));
+        return "Moved Piece.";
+    }
+
+
+    private String leaveGame() throws Exception {
+        this.assertInGame();
+        this.webSocketFacade.leaveGame();
+        this.webSocketFacade = null;
+        this.currentGameData = null;
+        this.currentPlayerColor = null;
+        return "Left Game.";
+    }
+
+    private String resignGame() throws Exception {
+        this.assertInGame();
+        this.webSocketFacade.resignGame();
+        return "Resigned From Game.";
+    }
+
+    // helper methods
+
+    private ChessPosition getChessPositionFromString(String positionString) {
+        positionString = positionString.toLowerCase();
+        return new ChessPosition(
+                positionString.charAt(0),
+                Character.getNumericValue(positionString.charAt(1)));
+    }
 
     private GameData getGame(int gameNumber) throws ResponseException {
         for (GameData game : this.serverFacade.listGames()) {
@@ -166,7 +307,7 @@ public class Client {
         throw new ResponseException("No such game.");
     }
 
-    private String getGameFancyString(GameData game, boolean includeBoards) {
+    private String getGameFancyString(GameData game, boolean includeWhiteBoard, boolean includeBlackBoard) {
         StringBuilder output = new StringBuilder();
         // game name
         output.append(SET_GAME_NAME_COLOR).append("~~ ").append(game.gameName()).append(" ~~\n");
@@ -177,7 +318,7 @@ public class Client {
         output.append(SET_RESULT_COLOR).append("\n");
         String gridLetterRow;
         // game (black at bottom) if requested
-        if (includeBoards) {
+        if (includeBlackBoard) {
             gridLetterRow = String.join(GRID_LETTER_SPACE, "h", "g", "f", "e", "d", "c", "b", "a");
             output.append(EMPTY).append(gridLetterRow).append("\n");
             for (int row = 1; row <= BOARD_SIDE_LENGTH; ++row) {
@@ -188,7 +329,9 @@ public class Client {
                 output.append(SET_RESULT_COLOR).append(" ").append(row).append("\n");
             }
             output.append(EMPTY).append(gridLetterRow).append("\n");
-            // game (white at bottom)
+        }
+        // game (white at bottom) if requested
+        if (includeWhiteBoard) {
             gridLetterRow = String.join(GRID_LETTER_SPACE, "a", "b", "c", "d", "e", "f", "g", "h");
             output.append(EMPTY).append(gridLetterRow).append("\n");
             for (int row = BOARD_SIDE_LENGTH; row >= 1; --row) {

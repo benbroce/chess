@@ -26,6 +26,10 @@ public class ServerFacade {
         this.authToken = null;
     }
 
+    public String getAuthToken() {
+        return authToken;
+    }
+
     // Admin Methods //////////////////////////////////////////////////////////////////////////////
 
     /**

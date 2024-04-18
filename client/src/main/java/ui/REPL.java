@@ -36,4 +36,9 @@ public class REPL {
                 + "[LOGGED_" + (client.isLoggedIn() ? "IN" : "OUT") + "] >>> "
                 + SET_USER_INPUT_COLOR);
     }
+
+    // TODO: Maybe modify to print at a logical place in the REPL flow (with a flag or shared var)
+    public static void printMessageAsync(String message) {
+        System.out.println(SET_RESULT_COLOR + message);
+    }
 }
