@@ -227,7 +227,7 @@ public class Client implements GameHandler {
             case ERROR -> ((ErrorMessage) serverMessage).getErrorMessage();
             default -> null;
         };
-        REPL.printMessageAsync(message);
+        REPL.notify(message);
     }
 
     @Override
@@ -235,7 +235,7 @@ public class Client implements GameHandler {
         if (this.isInGame()) {
             this.currentGameData = game;
             try {
-                REPL.printMessageAsync(this.drawGame());
+                REPL.notify(this.drawGame());
             } catch (ResponseException ignored) {
             }
         }

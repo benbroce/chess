@@ -38,7 +38,7 @@ public class REPL {
     }
 
     // TODO: Maybe modify to print at a logical place in the REPL flow (with a flag or shared var)
-    public static void printMessageAsync(String message) {
+    public static void notify(String message) {
         System.out.println(SET_RESULT_COLOR + message);
     }
 }
