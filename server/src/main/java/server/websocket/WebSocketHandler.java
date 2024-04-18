@@ -207,7 +207,8 @@ public class WebSocketHandler {
 
     private void loadGameForRootClient(int gameID, String authToken)
             throws UnauthorizedException, BadRequestException, DataAccessException, IOException {
-        this.sendMessage(gameID, authToken, (new Gson()).toJson(this.gameService.getGame(authToken, gameID)));
+        this.sendMessage(gameID, authToken,
+                (new Gson()).toJson(new LoadGameMessage(this.gameService.getGame(authToken, gameID))));
     }
 
     private String packErrorMessage(String errorMessage) {
