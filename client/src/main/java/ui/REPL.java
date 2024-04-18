@@ -33,7 +33,7 @@ public class REPL {
 
     private void printPrompt() {
         System.out.print("\n" + SET_PROMPT_COLOR
-                + "[LOGGED_" + (client.isLoggedIn() ? "IN" : "OUT") + "] >>> "
+                + (client.isInGame() ? ("[GAME") : ("[LOGGED_" + (client.isLoggedIn() ? "IN" : "OUT"))) + "] >>> "
                 + SET_USER_INPUT_COLOR);
     }
 
