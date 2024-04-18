@@ -32,16 +32,6 @@ public class WebSocketHandler {
     }
 
     /**
-     * When a websocket session closes, remove it from the SessionManager
-     *
-     * @param session the session to remove
-     */
-    @OnWebSocketClose
-    public void onClose(Session session) {
-        sessionManager.removeSession(session);
-    }
-
-    /**
      * Send a message to the client by client info
      *
      * @param gameID    the ID of the game context to send to
