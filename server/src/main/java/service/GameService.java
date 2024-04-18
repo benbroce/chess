@@ -16,6 +16,8 @@ import service.serviceExceptions.ServerErrorException;
 import service.serviceExceptions.UnauthorizedException;
 import webSocketMessages.userCommands.*;
 
+import java.util.Objects;
+
 public class GameService {
     private final AuthDAO authDAO;
     private final GameDAO gameDAO;
@@ -177,14 +179,12 @@ public class GameService {
             GameData gameData = this.getGame(command.getAuthString(), command.getGameID());
             // remove the root client from the game
             String rootClientUsername = this.authDAO.getUsername(command.getAuthString());
-            if (gameData.whiteUsername().equals(rootClientUsername)) {
+            if (Objects.equals(gameData.whiteUsername(), rootClientUsername)) {
                 gameData = new GameData(gameData.gameID(),
                         null, gameData.blackUsername(), gameData.gameName(), gameData.game());
-            } else if (gameData.blackUsername().equals(rootClientUsername)) {
+            } else if (Objects.equals(gameData.blackUsername(), rootClientUsername)) {
                 gameData = new GameData(gameData.gameID(), gameData.whiteUsername(),
                         null, gameData.gameName(), gameData.game());
-            } else {
-                throw new BadRequestException("not a player in the specified game");
             }
             // reinsert the game to DAO
             this.gameDAO.updateGame(gameData.gameID(), gameData);
