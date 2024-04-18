@@ -9,6 +9,8 @@ public class ColorScheme {
     public static final String SET_HELP_DESCRIPTOR_COLOR = RESET_BG_COLOR + SET_TEXT_COLOR_MAGENTA;
     public static final String SET_USER_INPUT_COLOR = RESET_BG_COLOR + SET_TEXT_COLOR_GREEN;
     public static final String SET_RESULT_COLOR = RESET_BG_COLOR + SET_TEXT_COLOR_BLUE;
+    public static final String SET_NOTIFICATION_COLOR = RESET_BG_COLOR + SET_TEXT_COLOR_YELLOW;
+    public static final String SET_ERROR_COLOR = RESET_BG_COLOR + SET_TEXT_COLOR_RED;
 
     // Chess Board
     public static final String SET_GAME_NAME_COLOR = SET_PROMPT_COLOR;

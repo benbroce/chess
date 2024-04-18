@@ -223,8 +223,8 @@ public class Client implements GameHandler {
     @Override
     public void printWebSocketMessage(ServerMessage serverMessage) {
         String message = switch (serverMessage.getServerMessageType()) {
-            case NOTIFICATION -> ((NotificationMessage) serverMessage).getMessage();
-            case ERROR -> ((ErrorMessage) serverMessage).getErrorMessage();
+            case NOTIFICATION -> SET_NOTIFICATION_COLOR + ((NotificationMessage) serverMessage).getMessage();
+            case ERROR -> SET_ERROR_COLOR + ((ErrorMessage) serverMessage).getErrorMessage();
             default -> null;
         };
         REPL.notify(message);
