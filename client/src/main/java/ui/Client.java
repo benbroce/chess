@@ -298,15 +298,6 @@ public class Client implements GameHandler {
                 Character.getNumericValue(positionString.charAt(1)));
     }
 
-    private GameData getGame(int gameNumber) throws ResponseException {
-        for (GameData game : this.serverFacade.listGames()) {
-            if (game.gameID() == this.gameNumberToGameID.get(gameNumber)) {
-                return game;
-            }
-        }
-        throw new ResponseException("No such game.");
-    }
-
     private String getGameFancyString(GameData game, boolean includeWhiteBoard, boolean includeBlackBoard) {
         StringBuilder output = new StringBuilder();
         // game name
