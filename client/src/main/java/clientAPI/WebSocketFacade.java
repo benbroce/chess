@@ -18,9 +18,9 @@ public class WebSocketFacade extends Endpoint implements MessageHandler.Whole<St
     private final String authToken;
     private final int gameID;
 
-    public WebSocketFacade(String serverURL, String authToken, GameHandler gameHandler, int gameID) throws Exception {
+    public WebSocketFacade(String webSocketURL, String authToken, GameHandler gameHandler, int gameID) throws Exception {
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-        this.session = container.connectToServer(this, (new URI(serverURL + "/connect")));
+        this.session = container.connectToServer(this, (new URI(webSocketURL + "/connect")));
         this.session.addMessageHandler(this);
         this.authToken = authToken;
         this.gameHandler = gameHandler;

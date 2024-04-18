@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 public class Client implements GameHandler {
-    private final String serverURL;
+    private final String webSocketURL;
     private final ServerFacade serverFacade;
     private WebSocketFacade webSocketFacade;
     private final HashMap<Integer, Integer> gameNumberToGameID;
@@ -31,8 +31,8 @@ public class Client implements GameHandler {
 
 
     public Client(String serverURL) {
-        this.serverURL = serverURL;
-        this.serverFacade = new ServerFacade(serverURL);
+        this.webSocketURL = "ws://" + serverURL;
+        this.serverFacade = new ServerFacade("http://" + serverURL);
         this.webSocketFacade = null;
         this.gameNumberToGameID = new HashMap<>();
         this.currentGameData = null;
@@ -184,7 +184,7 @@ public class Client implements GameHandler {
             this.serverFacade.joinGame(params[1], gameID);
             // create a websocket session for the game
             this.webSocketFacade = new WebSocketFacade(
-                    this.serverURL, this.serverFacade.getAuthToken(), this, gameID);
+                    this.webSocketURL, this.serverFacade.getAuthToken(), this, gameID);
             // join game on websocket session
             this.currentPlayerColor = (params[1].equalsIgnoreCase("WHITE")
                     ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
@@ -198,7 +198,7 @@ public class Client implements GameHandler {
             this.serverFacade.joinGame(null, gameID);
             // create a websocket session for the game
             this.webSocketFacade = new WebSocketFacade(
-                    this.serverURL, this.serverFacade.getAuthToken(), this, gameID);
+                    this.webSocketURL, this.serverFacade.getAuthToken(), this, gameID);
             // join game on websocket session
             this.currentPlayerColor = null;
             this.webSocketFacade.joinObserver();
