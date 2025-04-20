@@ -97,6 +97,13 @@ public class WebSocketHandler {
             throws UnauthorizedException, BadRequestException, DataAccessException, IOException {
         // decode JSON command
         JoinPlayerCommand command = (new Gson()).fromJson(message, JoinPlayerCommand.class);
+        // reject join if not already joined via HTTP
+        GameData gameData = this.gameService.getGame(command.getAuthString(), command.getGameID());
+        if (!this.authDAO.getUsername(command.getAuthString())
+                .equals((command.getPlayerColor() == ChessGame.TeamColor.WHITE)
+                        ? gameData.whiteUsername() : gameData.blackUsername())) {
+            throw new BadRequestException("Cannot join player websocket without first joining game via HTTP request");
+        }
         // add the player session to this game in the SessionManager
         this.sessionManager.addSessionToGame(command.getGameID(), command.getAuthString(), session);
         // run the gameService method on the command
@@ -132,6 +139,13 @@ public class WebSocketHandler {
             throws UnauthorizedException, BadRequestException, ServerErrorException, IOException, DataAccessException {
         // decode JSON command
         MakeMoveCommand command = (new Gson()).fromJson(message, MakeMoveCommand.class);
+        // verify that the move is coming from the player whose turn it is
+        GameData gameData = this.gameService.getGame(command.getAuthString(), command.getGameID());
+        if (!this.authDAO.getUsername(command.getAuthString())
+                .equals((command.getPlayerColor() == ChessGame.TeamColor.WHITE)
+                        ? gameData.whiteUsername() : gameData.blackUsername())) {
+            throw new BadRequestException("Cannot join player websocket without first joining game via HTTP request");
+        }
         // verify move validity, make move in gameService
         this.gameService.makeMove(command);
         // send the new game state to all clients
